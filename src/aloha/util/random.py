@@ -1,3 +1,14 @@
+__all__ = (
+    "random",
+    "random_bool",
+    "random_choice",
+    "random_int",
+    "random_ratio",
+    "random_uniform",
+    "random_sample",
+    "random_seed",
+)
+
 from secrets import SystemRandom
 
 random = SystemRandom()
@@ -7,25 +18,19 @@ def random_bool():
     return random.choice([True, False])
 
 
-def random_choice(*args, **kwargs):
-    return random.choice(*args, **kwargs)
+random_choice = random.choice
 
 
-def random_int(a, b):
-    return random.randint(a, b)
+random_int = random.randint
 
 
-def random_ratio():
-    return random.random()
+random_ratio = random.random
 
 
-def random_uniform(*args):
-    return random.uniform(*args)
+random_uniform = random.uniform
 
 
-def random_sample(*args):
-    return random.sample(*args)
+random_sample = random.sample
 
 
-def random_seed(*args, **kwargs):
-    return random.seed(*args, **kwargs)
+random_seed = random.seed

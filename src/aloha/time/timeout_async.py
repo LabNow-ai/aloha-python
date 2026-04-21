@@ -1,5 +1,5 @@
-""" Refer to: https://github.com/aio-libs/async-timeout/blob/master/async_timeout/__init__.py
-"""
+"""Refer to: https://github.com/aio-libs/async-timeout/blob/master/async_timeout/__init__.py"""
+
 import asyncio
 import enum
 import warnings
@@ -68,9 +68,7 @@ class Timeout:
 
     __slots__ = ("_deadline", "_loop", "_state", "_timeout_handler")
 
-    def __init__(
-            self, deadline: Optional[float], loop: asyncio.AbstractEventLoop
-    ) -> None:
+    def __init__(self, deadline: Optional[float], loop: asyncio.AbstractEventLoop) -> None:
         self._loop = loop
         self._state = _State.INIT
 
@@ -90,10 +88,10 @@ class Timeout:
         return self
 
     def __exit__(
-            self,
-            exc_type: Optional[Type[BaseException]],
-            exc_val: Optional[BaseException],
-            exc_tb: Optional[TracebackType],
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
     ) -> Optional[bool]:
         self._do_exit(exc_type)
         return None
@@ -103,10 +101,10 @@ class Timeout:
         return self
 
     async def __aexit__(
-            self,
-            exc_type: Optional[Type[BaseException]],
-            exc_val: Optional[BaseException],
-            exc_tb: Optional[TracebackType],
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
     ) -> Optional[bool]:
         self._do_exit(exc_type)
         return None

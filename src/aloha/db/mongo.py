@@ -1,12 +1,12 @@
-__all__ = ('MongoOperator',)
+__all__ = ("MongoOperator",)
 
 import ipaddress
 import json
 
 import pymongo
 
-from .base import PasswordVault
 from ..logger import LOG
+from .base import PasswordVault
 
 
 def _is_ip_addr(s):
@@ -21,15 +21,11 @@ _conn = {}
 
 
 def MongoOperator(config):
-    db_name = config.get('db_name')
-    collection_name = config.get('collection_name')
+    db_name = config.get("db_name")
+    collection_name = config.get("collection_name")
 
     _config = {k: v for k, v in config.items() if v is not None}
-    key = '%s:%s:%s' % (
-        json.dumps(_config, sort_keys=True, ensure_ascii=False),
-        db_name or '',
-        collection_name or ''
-    )
+    key = "%s:%s:%s" % (json.dumps(_config, sort_keys=True, ensure_ascii=False), db_name or "", collection_name or "")
 
     if key not in _conn:
         try:
@@ -44,27 +40,27 @@ class _MongoDBOperation:
     def __init__(self, config, db_name=None, collection_name=None):
         self.db_name, self.collection_name = db_name, collection_name
 
-        host = config['host']
+        host = config["host"]
 
-        if config.get('port') is None and isinstance(host, list):
-            hosts = ['{host}:{port}'.format(**h) for h in host]
+        if config.get("port") is None and isinstance(host, list):
+            hosts = ["{host}:{port}".format(**h) for h in host]
         else:
-            hosts = ['{host}:{port}'.format(host=host, port=config['port'])]
+            hosts = ["{host}:{port}".format(host=host, port=config["port"])]
 
-        replicaSet = config.get('replicaSet')
-        if replicaSet is None and not _is_ip_addr(hosts[0].split(':')[0]):
+        replicaSet = config.get("replicaSet")
+        if replicaSet is None and not _is_ip_addr(hosts[0].split(":")[0]):
             # if `replicaSet` not defined, and host in config is domain name (not IP)
-            replicaSet = hosts[0].split('.')[0]  # use the first segment of domain name as replicaSet
+            replicaSet = hosts[0].split(".")[0]  # use the first segment of domain name as replicaSet
 
-        password_vault = PasswordVault.get_vault(config.get('vault_type'), config.get('vault_config'))
+        password_vault = PasswordVault.get_vault(config.get("vault_type"), config.get("vault_config"))
         _config = {
-            'host': 'mongodb://%s' % ','.join(hosts),
-            'port': config.get('port'),
-            'replicaSet': replicaSet,
-            'username': config['username'],
-            'password': password_vault.get_password(config.get('password')),
-            'maxPoolSize': config.get('maxPoolSize'),
-            'authSource': config.get('authSource', db_name)
+            "host": "mongodb://%s" % ",".join(hosts),
+            "port": config.get("port"),
+            "replicaSet": replicaSet,
+            "username": config["username"],
+            "password": password_vault.get_password(config.get("password")),
+            "maxPoolSize": config.get("maxPoolSize"),
+            "authSource": config.get("authSource", db_name),
         }
         LOG.debug(_config)
 
@@ -146,23 +142,55 @@ class _MongoDBOperation:
         except Exception as e:
             LOG.exception(e)
 
-    def update_one(self, field_filter, update, upsert=False, bypass_document_validation=False,
-                   collation=None, array_filters=None, session=None, collection_name=None):
+    def update_one(
+        self,
+        field_filter,
+        update,
+        upsert=False,
+        bypass_document_validation=False,
+        collation=None,
+        array_filters=None,
+        session=None,
+        collection_name=None,
+    ):
         try:
             collection = self.check_and_get_collection(collection_name)
-            collection.update_one(filter=field_filter, update=update, upsert=upsert, bypass_document_validation=bypass_document_validation,
-                                  collation=collation, array_filters=array_filters, session=session)
+            collection.update_one(
+                filter=field_filter,
+                update=update,
+                upsert=upsert,
+                bypass_document_validation=bypass_document_validation,
+                collation=collation,
+                array_filters=array_filters,
+                session=session,
+            )
             return True
         except Exception as e:
             LOG.exception(e)
             return False
 
-    def update_many(self, field_filter, update, upsert=False, bypass_document_validation=False,
-                    collation=None, array_filters=None, session=None, collection_name=None):
+    def update_many(
+        self,
+        field_filter,
+        update,
+        upsert=False,
+        bypass_document_validation=False,
+        collation=None,
+        array_filters=None,
+        session=None,
+        collection_name=None,
+    ):
         try:
             collection = self.check_and_get_collection(collection_name)
-            return collection.update_many(filter=field_filter, update=update, upsert=upsert, bypass_document_validation=bypass_document_validation,
-                                          collation=collation, array_filters=array_filters, session=session)
+            return collection.update_many(
+                filter=field_filter,
+                update=update,
+                upsert=upsert,
+                bypass_document_validation=bypass_document_validation,
+                collation=collation,
+                array_filters=array_filters,
+                session=session,
+            )
         except Exception as e:
             LOG.exception(e)
 
@@ -234,4 +262,4 @@ class _MongoDBOperation:
 
     def check_connected(self):
         if not self.conn.connected:
-            raise NameError('stat:connected Error')
+            raise NameError("stat:connected Error")

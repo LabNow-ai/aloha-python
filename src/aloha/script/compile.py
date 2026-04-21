@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-# This script build a given python package into a package of dynamic library (.so) files.
+"""
+This script build a given python package into a package of dynamic library (.so) files.
+Example: python -m aloha.script.compile --base=./ --dist=../build --keep='main.py'
+"""
 
-__all__ = ('build', 'package')
+__all__ = ("build", "package")
 
 import argparse
 import glob
@@ -14,12 +17,12 @@ from distutils.core import setup
 try:
     from Cython.Build import cythonize
 except ImportError:
-    raise RuntimeError('Please pip install Cython first!')
+    raise RuntimeError("Please pip install Cython first!")
 
 
-def _expand(patterns: list = None):
+def _expand(patterns: list | None = None):
     files = []
-    for pattern in patterns:
+    for pattern in patterns or []:
         for file in glob.glob(pattern):
             files.append(os.path.abspath(file))
     files = sorted(set(files))
@@ -27,7 +30,7 @@ def _expand(patterns: list = None):
 
 
 def _delete(file_path: str, ignore_errors=True):
-    print('Removing file/folder: %s' % file_path)
+    print("Removing file/folder: %s" % file_path)
     try:
         if os.path.isfile(file_path) or os.path.islink(file_path):
             os.unlink(file_path)
@@ -38,8 +41,10 @@ def _delete(file_path: str, ignore_errors=True):
             raise e
 
 
-def build(base: str = None, dist: str = 'build', exclude: list = None, keep: list = None, copy_others=True):
-    path_base = os.path.abspath(base)
+def build(
+    base: str | None = None, dist: str = "build", exclude: list | None = None, keep: list | None = None, copy_others=True
+):
+    path_base = os.path.abspath(base or "./")
     path_build = os.path.abspath(dist)
     files_exclude = _expand(exclude or [])  # sorted(set(os.path.abspath(i) for i in files_exclude))
     files_keep = _expand(keep or [])  # sorted(set((os.path.abspath(i) for i in files_keep)))
@@ -50,7 +55,7 @@ def build(base: str = None, dist: str = 'build', exclude: list = None, keep: lis
         dir_name = dir_path.split(os.sep)[-1]  # name of the current directory
 
         flag_skip: bool = False
-        if dir_name.startswith('.') or (os.sep + '.' in dir_path):
+        if dir_name.startswith(".") or (os.sep + "." in dir_path):
             flag_skip = True  # hidden folders and sub-folders
         elif dir_path.startswith(path_build):
             flag_skip = True  # skip: folder for build output, and excluded folders
@@ -66,15 +71,15 @@ def build(base: str = None, dist: str = 'build', exclude: list = None, keep: lis
         for file in file_names:
             (name, extension), path = os.path.splitext(file), os.path.join(dir_path, file)
 
-            if path in files_exclude or extension in ('.pyc', 'pyx') or name.startswith('.'):
+            if path in files_exclude or extension in (".pyc", "pyx") or name.startswith("."):
                 continue  # skip: excluded files, pyc/pyx files, and hidden files
 
             path_full = os.path.abspath(path)
 
-            action = 'copy'
-            if extension in ('.py',):
-                if not name.startswith('__') and path_full not in files_keep:
-                    action = 'cythonize'
+            action = "copy"
+            if extension in (".py",):
+                if not name.startswith("__") and path_full not in files_keep:
+                    action = "cythonize"
             elif not copy_others:
                 continue  # if not copying other files, skip the file
 
@@ -82,11 +87,11 @@ def build(base: str = None, dist: str = 'build', exclude: list = None, keep: lis
 
             act_list[action].append((path, dst))
 
-    for (src, dst) in act_list.get('copy', ()) + act_list.get('cythonize', ()):
+    for src, dst in act_list.get("copy", ()) + act_list.get("cythonize", ()):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copyfile(src, dst)
 
-    target_cythonize = [dst for (src, dst) in act_list.get('cythonize', ())]
+    target_cythonize = [dst for (src, dst) in act_list.get("cythonize", ())]
 
     n_parallel = os.cpu_count() or 8
 
@@ -94,9 +99,9 @@ def build(base: str = None, dist: str = 'build', exclude: list = None, keep: lis
     cythonized = cythonize(target_cythonize, nthreads=n_parallel, language_level=3)
 
     # c code -> dynamic library file
-    path_build_tmp = os.path.join(path_build, '.tmp')
+    path_build_tmp = os.path.join(path_build, ".tmp")
     script_args = ["build_ext", "-b", path_build, "-t", path_build_tmp, "-j", n_parallel]
-    print('Build args: %s' % ' '.join(str(s) for s in script_args))
+    print("Build args: %s" % " ".join(str(s) for s in script_args))
     setup(ext_modules=cythonized, script_args=script_args)
 
     # clean up
@@ -108,18 +113,25 @@ def build(base: str = None, dist: str = 'build', exclude: list = None, keep: lis
     _delete(path_build_tmp)
 
 
-def package(base: str = None, dist: str = 'build', exclude: list = None, keep: list = None, copy_others=True, *args, **kwargs):
+def package(
+    base: str | None = None,
+    dist: str = "build",
+    exclude: list | None = None,
+    keep: list | None = None,
+    copy_others=True,
+    **kwargs,
+):
     t = time.time()
 
-    path_base = os.path.abspath(base or './')
+    path_base = os.path.abspath(base or "./")
     path_dist = os.path.abspath(dist)
     os.makedirs(path_dist, exist_ok=True)
-    if len(glob.glob(path_dist + '/*')) > 0:
-        raise ValueError('Dist folder [%s] MUST be an empty directory or an non-existing folder!' % path_dist)
+    if len(glob.glob(path_dist + "/*")) > 0:
+        raise ValueError("Dist folder [%s] MUST be an empty directory or an non-existing folder!" % path_dist)
 
     folder_name = os.getcwd().split(os.sep)[-1]
-    folder_temp = os.path.join('/tmp/build/', folder_name)
-    print('Building project to path:', folder_temp)
+    folder_temp = os.path.join("/tmp/build/", folder_name)
+    print("Building project to path:", folder_temp)
     _delete(folder_temp, ignore_errors=True)  # clear the folder first
 
     build(
@@ -127,28 +139,29 @@ def package(base: str = None, dist: str = 'build', exclude: list = None, keep: l
         dist=folder_temp,  # target directory for build files
         exclude=exclude,  # exclude this file by default, this is a collection of files/folders to exclude
         keep=keep,  # source files keep as is and not converting to dynamic library
-        copy_others=copy_others
+        copy_others=copy_others,
     )
-    [shutil.move(f, os.path.join(path_dist, f.split(os.sep)[-1])) for f in glob.glob(folder_temp + '/*')]
+    [shutil.move(f, os.path.join(path_dist, f.split(os.sep)[-1])) for f in glob.glob(folder_temp + "/*")]
     t = time.time() - t
-    print('\n\nTime consumed to build code: %.2f seconds.' % t)
+    print("\n\nTime consumed to build code: %.2f seconds." % t)
     print("Successfully finished building package to: ", path_dist)
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--base', type=str, help='root folder which includes source code to build')
-    p.add_argument('--dist', type=str, default='build', help='target folder for the binary code')
-    p.add_argument('--exclude', type=str, nargs='*', default=(), help='a collection of files/folders to exclude')
-    p.add_argument('--keep', type=str, nargs='*', default=(), help='source files keep as is and not converting to dynamic library')
+    p.add_argument("--base", type=str, help="root folder which includes source code to build")
+    p.add_argument("--dist", type=str, default="build", help="target folder for the binary code")
+    p.add_argument("--exclude", type=str, nargs="*", default=(), help="a collection of files/folders to exclude")
+    p.add_argument(
+        "--keep", type=str, nargs="*", default=(), help="source files keep as is and not converting to dynamic library"
+    )
 
     args = p.parse_args()
     args = vars(args)
     for k, v in args.items():
-        print('%s = %s' % (k, v))
+        print("%s = %s" % (k, v))
     package(**args)
 
 
-if __name__ == '__main__':
-    """python -m aloha.script.compile --base=./ --dist=../build --keep='main.py'"""
+if __name__ == "__main__":
     main()

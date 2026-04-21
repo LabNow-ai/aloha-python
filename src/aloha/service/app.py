@@ -14,19 +14,39 @@ try:
 except ImportError:
     LOG.info('[uvloop] NOT installed, fallback to asyncio loop! Consider `pip install uvloop`!')
 
-from .web import WebApplication
-from ..settings import SETTINGS
-
 from tornado.options import options
+
+from ..settings import SETTINGS
+from .web import WebApplication
 
 
 class Application:
+    """
+    Main application class for aloha service.
+    
+    Wraps a WebApplication and manages the event loop lifecycle.
+    Tries to use uvloop if available for better performance.
+    """
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the application.
+        
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        """
         options['log_file_prefix'] = 'access.log'
         settings = dict(SETTINGS.config)
         self.web_app = WebApplication(settings)
 
     def start(self):
+        """
+        Start the application and run the event loop.
+        
+        Starts the web application and enters the event loop.
+        The event loop must not be running before calling this method.
+        
+        :raises RuntimeError: If event loop is already running
+        """
         try:
             self.web_app.start()
             event_loop = asyncio.get_event_loop()
@@ -44,6 +64,9 @@ class Application:
             pass
 
     def stop(self):
+        """
+        Stop the application and event loop.
+        """
         event_loop = asyncio.get_event_loop()
         if event_loop.is_running():
             event_loop.stop()

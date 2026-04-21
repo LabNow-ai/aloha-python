@@ -1,7 +1,7 @@
 import pyhocon
 
-from .base import BaseVault
 from ...encrypt.aes import AesEncryptor
+from .base import BaseVault
 
 
 def _is_empty_str(s):
@@ -9,7 +9,7 @@ def _is_empty_str(s):
 
 
 class AesVault(AesEncryptor, BaseVault):
-    def __init__(self, key: str = None):
+    def __init__(self, key: str | None = None):
         super().__init__(key)
 
     def decrypt_password(self, pwd):

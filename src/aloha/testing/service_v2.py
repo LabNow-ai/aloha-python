@@ -1,6 +1,7 @@
 from abc import ABC
 
 from aloha.service.api.v2 import APICaller
+
 from .unit import UnitTestCase
 
 
@@ -9,7 +10,7 @@ class ServiceTestCase(UnitTestCase, ABC, APICaller):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.api_url_port = ServiceTestCase.config.get('service', {}).get('port', 80)
+        cls.api_url_port = ServiceTestCase.config.get("service", {}).get("port", 80)
 
     @classmethod
     def request_api(cls, api_url, timeout=5, **kwargs):
@@ -20,7 +21,7 @@ class ServiceTestCase(UnitTestCase, ABC, APICaller):
         :param kwargs: request data
         :return:
         """
-        url = 'http://localhost:%s/%s' % (cls.api_url_port, api_url)
+        url = "http://localhost:%s/%s" % (cls.api_url_port, api_url)
         # cls.LOG.debug("POST %s  %s" % (url, json.dumps(kwargs, ensure_ascii=False, sort_keys=True)))
         # resp = requests.post(
         #     url, json=kwargs, timeout=timeout, headers={'Content-Type': 'application/json'}

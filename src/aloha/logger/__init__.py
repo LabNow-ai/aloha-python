@@ -1,9 +1,8 @@
-__all__ = ("LOG", "get_logger")
+__all__ = ("LOG", "get_logger", "getLogger")
 
-from .logger import get_logger
 from ..settings import SETTINGS
+from .logger import get_logger, getLogger
 
 LOG = get_logger(
-    level=SETTINGS.config.get('deploy', {}).get('log_level', 10),  # 10 = logging.DEBUG
-    # logger_name='default',
+    level=SETTINGS.config.get("deploy", {}).get("log_level", 10),  # 10 = logging.DEBUG
 )

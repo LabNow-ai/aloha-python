@@ -1,4 +1,4 @@
-# Aloha!
+# Aloha
 
 ## What is it?
 
@@ -32,7 +32,8 @@ Refer to[📚 Document & 中文文档](https://aloha-python.readthedocs.io/) for
 pip install aloha[all]
 ```
 
-And then: 
+And then:
+
 ```python
 from aloha.logger import LOG
 from aloha.settings import SETTINGS as S

@@ -1,4 +1,4 @@
-__all__ = ('get_sys_info',)
+__all__ = ("get_sys_info",)
 
 import platform
 from datetime import datetime
@@ -7,14 +7,20 @@ import psutil
 
 from ..logger import LOG
 
-LOG.debug('Using psutil == %s' % psutil.__version__)
+LOG.debug("Using psutil == %s" % psutil.__version__)
 
 
 def get_size(bytes, suffix="B"):
-    """Scale bytes to its proper format
+    """
+    Scale bytes to its proper format.
+
     e.g:
         1253656 => '1.20MB'
         1253656678 => '1.17GB'
+
+    :param bytes: Number of bytes to format
+    :param suffix: Unit suffix (default: "B")
+    :return: Formatted size string
     """
     factor = 1024
     for unit in ["", "K", "M", "G", "T", "P"]:
@@ -24,10 +30,15 @@ def get_size(bytes, suffix="B"):
 
 
 def get_os_info(*args, **kwargs) -> dict:
+    """
+    Get operating system information.
+
+    :return: Dictionary containing OS information including boot time and platform details
+    """
     ret = {}
 
     boot_time = datetime.fromtimestamp(psutil.boot_time())
-    ret['boot_time'] = boot_time.strftime('%Y-%m-%d %H:%M:%S.%f')
+    ret["boot_time"] = boot_time.strftime("%Y-%m-%d %H:%M:%S.%f")
 
     uname = platform.uname()
     ret.update(uname._asdict())
@@ -35,6 +46,11 @@ def get_os_info(*args, **kwargs) -> dict:
 
 
 def get_cpu_info(*args, **kwargs) -> dict:
+    """
+    Get CPU information.
+
+    :return: Dictionary containing CPU information including core count, frequency, and usage percentage
+    """
     cpu_freq = psutil.cpu_freq()  # CPU frequencies
     ret = {
         "num_cores_physical": psutil.cpu_count(logical=False),
@@ -45,12 +61,17 @@ def get_cpu_info(*args, **kwargs) -> dict:
         "cpu_percent_total": f"{psutil.cpu_percent()}%",
     }
     for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
-        ret['cpu_percent_core_%02d' % i] = f"{percentage}%"
+        ret["cpu_percent_core_%02d" % i] = f"{percentage}%"
 
     return ret
 
 
 def get_mem_info(*args, **kwargs) -> dict:
+    """
+    Get memory information.
+
+    :return: Dictionary containing virtual memory and swap space information
+    """
     svmem = psutil.virtual_memory()
     swap = psutil.swap_memory()
 
@@ -59,7 +80,6 @@ def get_mem_info(*args, **kwargs) -> dict:
         "vm_available": f"{get_size(svmem.available)}",
         "vm_used": f"{get_size(svmem.used)}",
         "vm_percent": f"{svmem.percent}%",
-
         "swap_total": f"{get_size(swap.total)}",
         "swap_free": f"{get_size(swap.free)}",
         "swap_used": f"{get_size(swap.used)}",
@@ -68,6 +88,11 @@ def get_mem_info(*args, **kwargs) -> dict:
 
 
 def get_disk_info(*args, **kwargs) -> dict:
+    """
+    Get disk information.
+
+    :return: Dictionary containing disk I/O statistics and partition information
+    """
     # get IO statistics since boot
     disk_io = psutil.disk_io_counters()
     partitions = psutil.disk_partitions()
@@ -75,7 +100,7 @@ def get_disk_info(*args, **kwargs) -> dict:
     ret = {
         "io_total_read": f"{get_size(disk_io.read_bytes)}",
         "io_total_write": f"{get_size(disk_io.write_bytes)}",
-        "partitions": []
+        "partitions": [],
     }
 
     for partition in partitions:
@@ -87,12 +112,14 @@ def get_disk_info(*args, **kwargs) -> dict:
 
         try:
             partition_usage = psutil.disk_usage(partition.mountpoint)
-            part.update({
-                "size_total": f"{get_size(partition_usage.total)}",
-                "size_used": f"{get_size(partition_usage.used)}",
-                "size_free": f"{get_size(partition_usage.free)}",
-                "percent_used": f"{partition_usage.percent}%",
-            })
+            part.update(
+                {
+                    "size_total": f"{get_size(partition_usage.total)}",
+                    "size_used": f"{get_size(partition_usage.used)}",
+                    "size_free": f"{get_size(partition_usage.free)}",
+                    "percent_used": f"{partition_usage.percent}%",
+                }
+            )
         except PermissionError:
             pass  # this can be caught due to the disk that isn't ready
 
@@ -102,6 +129,11 @@ def get_disk_info(*args, **kwargs) -> dict:
 
 
 def get_net_info(*args, **kwargs) -> dict:
+    """
+    Get network information.
+
+    :return: Dictionary containing network I/O statistics and interface information
+    """
     # get IO statistics since boot
     net_io = psutil.net_io_counters()
 
@@ -111,26 +143,33 @@ def get_net_info(*args, **kwargs) -> dict:
     ret = {
         "net_total_sent": f"{get_size(net_io.bytes_sent)}",
         "net_total_received": f"{get_size(net_io.bytes_recv)}",
-        "interfaces": []
+        "interfaces": [],
     }
 
     for interface_name, interface_addresses in if_addresses.items():
         interface = {"name": interface_name}
 
         for address in interface_addresses:
-            family = str(address.family).split('.')[-1]
-            family = {'AF_LINK': 'mac', 'AF_INET': 'ipv4', 'AF_INET6': 'ipv6'}.get(family, family)
+            family = str(address.family).split(".")[-1]
+            family = {"AF_LINK": "mac", "AF_INET": "ipv4", "AF_INET6": "ipv6"}.get(family, family)
 
-            interface['%s_address' % family] = address.address
-            interface['%s_netmask' % family] = address.netmask
-            interface['%s_broadcast' % family] = address.broadcast
+            interface["%s_address" % family] = address.address
+            interface["%s_netmask" % family] = address.netmask
+            interface["%s_broadcast" % family] = address.broadcast
 
-        ret['interfaces'].append(interface)
+        ret["interfaces"].append(interface)
 
     return ret
 
 
 def get_sys_info(*args, **kwargs) -> dict:
+    """
+    Get comprehensive system information.
+
+    Combines information from OS, CPU, memory, disk, and network subsystems.
+
+    :return: Dictionary containing complete system information
+    """
     return {
         "os_info": get_os_info(),
         "cpu_info": get_cpu_info(),
@@ -141,11 +180,15 @@ def get_sys_info(*args, **kwargs) -> dict:
 
 
 def main():
+    """
+    Print system information as JSON to stdout.
+    """
     data = get_sys_info()
     import json
+
     data = json.dumps(data, ensure_ascii=False, indent=2)
     print(data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

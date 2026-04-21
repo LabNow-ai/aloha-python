@@ -26,6 +26,7 @@ with TimeOutRestriction(10, suppress_timeout_errors=True):
 print('Maybe exceeded 10 seconds, but finished either way')
 ```
 """
+
 import contextlib
 import errno
 import os
@@ -35,7 +36,9 @@ DEFAULT_TIMEOUT_MESSAGE = os.strerror(errno.ETIME)
 
 
 class TimeOutRestriction(contextlib.ContextDecorator):
-    def __init__(self, milliseconds: float, *, timeout_message: str = DEFAULT_TIMEOUT_MESSAGE, suppress_timeout_errors: bool = False):
+    def __init__(
+        self, milliseconds: float, *, timeout_message: str = DEFAULT_TIMEOUT_MESSAGE, suppress_timeout_errors: bool = False
+    ):
         self.millisecond = milliseconds
         self.timeout_message = timeout_message
         self.suppress = bool(suppress_timeout_errors)

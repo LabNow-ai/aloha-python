@@ -56,9 +56,9 @@ markdown_extensions:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
 nav:
-  - Introduction: 'index.md'
-  - Get Started: 'README-get-start.md'
-  - Common Tasks: 'README-tasks.md'
-  - Configs: 'README-config.md'
-  - Development Guide: 'README-develop.md'
-  - API Reference: 'api.md'
+  - Introduction: "index.md"
+  - Get Started: "README-get-start.md"
+  - Cli and Commands: "README-cli.md"
+  - Configs: "README-config.md"
+  - Development Guide: "README-develop.md"
+  - API Reference: "api.md"

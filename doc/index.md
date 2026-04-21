@@ -63,6 +63,7 @@ Notice the `[all]` after the package is a set of (one or more) extra requirement
 === "中文"
 
     请留意，上述安装命令中包名后的`[all]`是额外的安装依赖，这些额外的安装内容在使用某些模块的时候会用到。
+
     - `all`: 包含了下面的所有的依赖包
     - `service`: 用于创建RESTful APIs的依赖，aloha基于torndao来构建服务；
     - `build`: 用于将Python代码编译为二进制包或类库，这对于需要进行源代码保护的场景十分有用；

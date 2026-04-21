@@ -58,7 +58,7 @@ markdown_extensions:
 nav:
   - Introduction: "index.md"
   - Get Started: "README-get-start.md"
-  - Cli and Commands: "README-cli.md"
+  - CLI Commands: "README-cli.md"
   - Configs: "README-config.md"
   - Development Guide: "README-develop.md"
   - API Reference: "api.md"

@@ -19,7 +19,7 @@ build:
       - echo "Command run at 'post_build' step $(date)"
 
 mkdocs:
-  configuration: ./src/mkdocs.yml
+  configuration: ./doc/mkdocs.yml
 
 # Optionally declare the Python requirements required to build your docs
 python:

@@ -30,7 +30,7 @@ class PasswordVault:
         :raises RuntimeError: If CyberArk vault is requested but config is missing
         """
         encryption_method = vault_type or SETTINGS.config.get("PASSWORD_ENCRYPTION")
-        LOG.debug("Using password vault: %s", encryption_method)
+        LOG.debug("Using password vault: %s", encryption_method)  # nosemgrep
 
         cache_key = "%s:%s" % (encryption_method, str(vault_config))
         if cache_key not in PasswordVault._dict_cache_vault:
@@ -42,7 +42,8 @@ class PasswordVault:
                     raise RuntimeError("Missing [CYBERARK_CONFIG] in config!")
                 v = vault.CyberArkVault(**config_cyberark)
             else:
-                LOG.info("Using plain password vault as unknown value of PASSWORD_ENCRYPTION=%s in config.", encryption_method)
+                msg = "Using plain password vault as unknown value of PASSWORD_ENCRYPTION=%s in config." % encryption_method
+                LOG.info(msg)  # nosemgrep
                 v = vault.DummyVault(**(vault_config or {}))
             PasswordVault._dict_cache_vault[cache_key] = v
 

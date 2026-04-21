@@ -1,4 +1,4 @@
-__all__ = ('KafkaOperator',)
+__all__ = ("KafkaOperator",)
 
 import json
 import typing
@@ -8,7 +8,7 @@ import confluent_kafka.admin as kafka_admin
 
 from ..logger import LOG
 
-LOG.debug('Version of confluent_kafka client = %s' % kafka.__version__)
+LOG.debug("Version of confluent_kafka client = %s" % kafka.__version__)
 
 
 class KafkaOperator:
@@ -23,9 +23,9 @@ class KafkaOperator:
         """
         self._config = json.loads(json.dumps(kafka_config, ensure_ascii=False))  # deep copy
 
-        if 'host' in kafka_config:
+        if "host" in kafka_config:
             self._config = {
-                'bootstrap.servers': ','.join(['{host}:{port}'.format(**i) for i in kafka_config.pop('host')]),
+                "bootstrap.servers": ",".join(["{host}:{port}".format(**i) for i in kafka_config.pop("host")]),
             }
         LOG.debug("Kafka connection info: " + str(self._config))
 
@@ -61,11 +61,11 @@ class KafkaOperator:
         p = kafka.Producer(config_producer)
 
         def delivery_report(err, msg):
-            """ Called once for each message produced to indicate delivery result. Triggered by poll() or flush(). """
+            """Called once for each message produced to indicate delivery result. Triggered by poll() or flush()."""
             if err is not None:
-                LOG.error('Kafka msg delivery failed: {}'.format(err))
+                LOG.error("Kafka msg delivery failed: {}".format(err))
             else:
-                LOG.debug('Kafka msg delivered to {} [{}]'.format(msg.topic(), msg.partition()))
+                LOG.debug("Kafka msg delivered to {} [{}]".format(msg.topic(), msg.partition()))
 
         if func_callback is None:
             func_callback = delivery_report
@@ -77,15 +77,17 @@ class KafkaOperator:
             # Asynchronously produce a message, the delivery report callback
             # will be triggered from poll() above, or flush() below, when the message has
             # been successfully delivered or failed permanently.
-            p.produce(topic, data.encode('utf-8'), callback=func_callback)
+            p.produce(topic, data.encode("utf-8"), callback=func_callback)
 
         # Wait for any outstanding messages to be delivered and delivery report callbacks to be triggered.
         p.flush()
 
-    def consumer_generator(self, topics_subscribe: list, group_id: str = None, poll_timeout: float = 1.0, *args, **kwargs) -> typing.Iterator[str]:
-        config_consumer = {'auto.offset.reset': 'earliest', **self._config}
+    def consumer_generator(
+        self, topics_subscribe: list, group_id: str | None = None, poll_timeout: float = 1.0, *args, **kwargs
+    ) -> typing.Iterator[str]:
+        config_consumer = {"auto.offset.reset": "earliest", **self._config}
         if group_id is not None:
-            config_consumer['group.id'] = group_id
+            config_consumer["group.id"] = group_id
         c = kafka.Consumer(config_consumer)
 
         c.subscribe(topics_subscribe)
@@ -101,8 +103,8 @@ class KafkaOperator:
                 LOG.error("Kafka consumer: {}".format(msg.error()))
                 continue
 
-            data = msg.value().decode('utf-8')
-            LOG.debug('Received message: {}'.format(data))
+            data = msg.value().decode("utf-8")
+            LOG.debug("Received message: {}".format(data))
             yield data
 
         c.close()

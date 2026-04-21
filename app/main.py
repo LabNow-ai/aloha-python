@@ -10,7 +10,8 @@ if len(sys.argv) < 2:
     print(usage)
     exit(-1)
 
-m = importlib.import_module(sys.argv[1])
+sys.argv.pop(0)
+m = importlib.import_module(sys.argv[0])
 f_main = getattr(m, "main")
 
 if f_main is None:

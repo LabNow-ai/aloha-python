@@ -2,7 +2,7 @@ import asyncio
 import enum
 import sys
 import warnings
-from functools import wraps, partial
+from functools import partial, wraps
 from types import TracebackType
 from typing import Any, Optional, Type
 
@@ -71,9 +71,7 @@ class Timeout:
 
     __slots__ = ("_deadline", "_loop", "_state", "_task", "_timeout_handler")
 
-    def __init__(
-            self, deadline: Optional[float], loop: asyncio.AbstractEventLoop
-    ) -> None:
+    def __init__(self, deadline: Optional[float], loop: asyncio.AbstractEventLoop) -> None:
         self._loop = loop
         self._state = _State.INIT
 
@@ -96,10 +94,10 @@ class Timeout:
         return self
 
     def __exit__(
-            self,
-            exc_type: Type[BaseException],
-            exc_val: BaseException,
-            exc_tb: TracebackType,
+        self,
+        exc_type: Type[BaseException],
+        exc_val: BaseException,
+        exc_tb: TracebackType,
     ) -> Optional[bool]:
         self._do_exit(exc_type)
         return None
@@ -109,10 +107,10 @@ class Timeout:
         return self
 
     async def __aexit__(
-            self,
-            exc_type: Type[BaseException],
-            exc_val: BaseException,
-            exc_tb: TracebackType,
+        self,
+        exc_type: Type[BaseException],
+        exc_val: BaseException,
+        exc_tb: TracebackType,
     ) -> Optional[bool]:
         self._do_exit(exc_type)
         return None
@@ -166,9 +164,7 @@ class Timeout:
             else:
                 # state is ENTER
                 raise asyncio.CancelledError
-        self._timeout_handler = self._loop.call_at(
-            deadline, self._on_timeout, self._task
-        )
+        self._timeout_handler = self._loop.call_at(deadline, self._on_timeout, self._task)
 
     def _do_enter(self) -> None:
         if self._state != _State.INIT:
@@ -199,7 +195,7 @@ def _current_task(loop: asyncio.AbstractEventLoop) -> "Optional[asyncio.Task[Any
 def _get_running_loop() -> asyncio.AbstractEventLoop:
     loop = asyncio.get_running_loop()
     if loop is None:
-        print('--' * 20)
+        print("--" * 20)
         loop = asyncio.get_event_loop()
 
     if sys.version_info >= (3, 7):

@@ -1,28 +1,54 @@
 # Secret Variables required in GitHub secrets: TWINE_USERNAME, TWINE_PASSWORD / TWINE_USERNAME_TEST, TWINE_PASSWORD_TEST
 
-name: build-pip-publish
+name: build-python-package
 
 on:
   push:
-    branches: [ main ]
-    paths-ignore: [ "*.md" ]
+    branches: ["main"]
+    tags: ["v*"]
+    paths-ignore: ["*.md"]
   pull_request:
-    branches: [ main ]
-    paths-ignore: [ "*.md" ]
+    branches: ["main"]
+    paths-ignore: ["*.md"]
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-pypi-package:
-    # The type of runner that the job will run on
+  job-ruff:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install ruff && ruff check ./src
 
+  job-semgrep:
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    continue-on-error: true
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          semgrep ci --verbose \
+            --config p/ci \
+            --config p/security-audit \
+            --config p/python \
+            --config p/javascript \
+            --config p/react \
+            --config p/owasp-top-ten
+
+  build-pypi-package:
+    runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # sudo python setup.py install clean --all
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: pip-install-test
         run: |

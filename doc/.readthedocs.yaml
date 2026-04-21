@@ -7,9 +7,10 @@ version: 2
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-22.04
+  os: ubuntu-lts-latest
   tools:
-    python: "3.11"
+    python: "3"
+    # nodejs: "latest"
   # apt_packages: []
   jobs:
     pre_create_environment:
@@ -18,7 +19,7 @@ build:
       - echo "Command run at 'post_build' step $(date)"
 
 mkdocs:
-  configuration: mkdocs.yml
+  configuration: ./doc/mkdocs.yml
 
 # Optionally declare the Python requirements required to build your docs
 python:

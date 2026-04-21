@@ -2,26 +2,17 @@ import jwt
 
 from ..logger import LOG
 
-LOG.debug('Using pyjwt == %s' % jwt.__version__.__str__())
+LOG.debug("Using pyjwt == %s" % jwt.__version__.__str__())
 
 
-def encode(
-        secret_key: str,
-        payload: dict,
-        headers: dict = None,
-        **kwargs
-):
+def encode(secret_key: str, payload: dict, headers: dict = None, **kwargs):
     token = jwt.encode(payload=payload, key=secret_key, headers=headers, **kwargs)
     return token
 
 
-def decode(
-        secret_key: str,
-        token: str,
-        **kwargs
-):
+def decode(secret_key: str, token: str, **kwargs):
     try:
-        resp = jwt.decode(jwt=token, key=secret_key, algorithms=['HS256'], **kwargs)
+        resp = jwt.decode(jwt=token, key=secret_key, algorithms=["HS256"], **kwargs)
     except jwt.ExpiredSignatureError as e:
         resp = str(e)
     except jwt.PyJWTError as e:

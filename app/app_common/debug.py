@@ -9,17 +9,19 @@ def main():
         "app_common.api.api_multipart",
     ]
 
-    if 'service' not in SETTINGS.config:
-        SETTINGS.config['service'] = {}
+    if "service" not in SETTINGS.config:
+        SETTINGS.config["service"] = {}
 
     # load the service modules from SETTINGS.config['service']['modules']
-    SETTINGS.config['service'].update({
-        'modules': modules_to_load,
-        'debug': True,
-    })
+    SETTINGS.config["service"].update(
+        {
+            "modules": modules_to_load,
+            "debug": True,
+        }
+    )
 
     # Use self defined 404 handler
-    SETTINGS.config['default_handler_class'] = DefaultHandler404
+    SETTINGS.config["default_handler_class"] = DefaultHandler404
 
     app = Application()
 
@@ -27,5 +29,5 @@ def main():
     app.start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,33 +1,33 @@
-__all__ = ('ElasticSearchOperator',)
+__all__ = ("ElasticSearchOperator",)
 
 import json
 
 from elasticsearch import Elasticsearch
-from .base import PasswordVault
+
 from ..logger import LOG
+from .base import PasswordVault
 
 
 class ElasticSearchOperator:
     def __init__(self, config, index_config=None):
         self.es_config = config
 
-        password_vault = PasswordVault.get_vault(config.get('vault_type'), config.get('vault_config'))
-        username = config.get('username')
-        password = password_vault.get_password(config.get('password'))
+        password_vault = PasswordVault.get_vault(config.get("vault_type"), config.get("vault_config"))
+        username = config.get("username")
+        password = password_vault.get_password(config.get("password"))
 
         self._config = {
-            'http_auth': (username, password) if username is not None and password is not None else None,
-            'hosts': config.get('host', 'localhost'),
-
-            'timeout': config.get("timeout", 0.1),
-            'max_retries': config.get("max_retries", 3),
-            'retry_on_timeout': config.get("retry_on_timeout", True)
+            "http_auth": (username, password) if username is not None and password is not None else None,
+            "hosts": config.get("host", "localhost"),
+            "timeout": config.get("timeout", 0.1),
+            "max_retries": config.get("max_retries", 3),
+            "retry_on_timeout": config.get("retry_on_timeout", True),
         }
-        LOG.debug("ElasticSearch connection info: " + str(self._config['hosts']))
+        LOG.debug("ElasticSearch connection info: " + str(self._config["hosts"]))
 
         self.index_config = index_config
-        self.index_name = self.es_config.get('index_name')
-        self.index_type = self.es_config.get('index_type')
+        self.index_name = self.es_config.get("index_name")
+        self.index_type = self.es_config.get("index_type")
 
         self.es = Elasticsearch(**self._config)
 
@@ -36,30 +36,27 @@ class ElasticSearchOperator:
 
     @staticmethod
     def _load_config(config):
-        if type(config) == dict:
+        if isinstance(config, dict):
             return config
 
-        elif type(config) == str and ".json" in config:
+        elif isinstance(config, str) and ".json" in config:
             with open(config, "r", encoding="utf-8") as f:
                 config = json.load(f)
             return config
 
         else:
-            raise Exception("Invalid ES config data type")
+            raise ValueError("Invalid ES config data type")
 
-    def put_mapping(self, index_name=None, index_type=None, index_config=None):
+    def put_mapping(self, index_name=None, index_type=None, index_config: dict | None = None):
         return self.es.indices.put_mapping(
             index=index_name or self.index_name,
             doc_type=index_type or self.index_type,
-            body=index_config["mappings"][index_type or self.index_type]
+            body=index_config["mappings"][index_type or self.index_type],
         )
 
     def build_index(self, index_name=None, index_config=None, raise_if_exist=False):
         if self.es.indices.exists(index=index_name or self.index_name) is not True:
-            res = self.es.indices.create(
-                index=index_name or self.index_name,
-                body=index_config or self.index_config
-            )
+            res = self.es.indices.create(index=index_name or self.index_name, body=index_config or self.index_config)
             return res
         else:
             msg = "Index [%s] already exits" % self.index_name

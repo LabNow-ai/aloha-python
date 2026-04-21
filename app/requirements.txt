@@ -1,0 +1,27 @@
+# aloha[all]
+attrdict3
+pyhocon
+pycryptodome
+packaging
+Cython
+requests
+tornado
+psutil
+pyjwt
+fastapi
+httpx
+sqlalchemy
+psycopg[binary]
+pymysql
+elasticsearch
+pymongo
+redis
+confluent_kafka
+pandas
+openpyxl>=3
+XlsxWriter
+pytest-cov
+mkdocs
+mkdocstrings[python]
+markdown-include
+mkdocs-material

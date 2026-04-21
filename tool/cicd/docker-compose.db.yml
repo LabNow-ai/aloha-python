@@ -5,12 +5,11 @@ networks:
     name: net-db-common
     external: false
 
-
 services:
   db-postgres-common:
     container_name: db-postgres-common
     hostname: db-postgres-common
-    image: quay.io/labnow/postgres-16-ext
+    image: quay.io/labnow/postgres-17-ext
     pull_policy: if_not_present
     restart: unless-stopped
     environment:
@@ -24,6 +23,6 @@ services:
       # sudo chmod -R 777 /data/data-pg-common
       - ../../src/resource/db:/data/mapp-ihealth/sql:rw
       # - ./sql:/docker-entrypoint-initdb.d:rw
-    networks: ["net-db-common"]
-    ports: ["5432:5432"]
+    networks: [ "net-db-common" ]
+    ports: [ "5432:5432" ]
     # su postgres && psql -d postgres -U postgres

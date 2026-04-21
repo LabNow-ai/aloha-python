@@ -24,12 +24,12 @@ Sometime, you need to compile your python source code into binary libraries to p
 Aloha helps you build your python source code into binary using `Cython`. You can run the following command to build your code.
 
 ```bash
-aloha compile --base=./demo --dist=./build --keep='main.py'
+aloha compile --base=./app --dist=./build --keep='main.py'
 ```
 
 The following options can be used:
 
 - `--base`: the root folder which includes source code to build
 - `--dist`: (default='build') target folder for the binary code
-- `--exclude`: a collection of files/folders to exclude  (you can specify multiple excludes by using this option multiple times) 
+- `--exclude`: a collection of files/folders to exclude (you can specify multiple excludes by using this option multiple times)
 - `--keep`: source files keep as is and not converting to dynamic library (you can specify multiple excludes by using this option multiple times)

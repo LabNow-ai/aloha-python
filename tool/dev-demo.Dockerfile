@@ -8,7 +8,7 @@ FROM ${BASE_NAMESPACE:+$BASE_NAMESPACE/}${BASE_IMG} AS dev
 
 ARG PROFILE_LOCALIZE
 
-# COPY src/requirements.txt /tmp/
+COPY app/requirements.txt /tmp/
 
 USER root
 RUN set -eux && pwd && ls -alh \

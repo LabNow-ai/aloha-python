@@ -25,13 +25,13 @@ dict_extra_requires = {
 setup(
     name="aloha",
     version=_version,
-    author="QPod",
-    author_email="45032326+QPod0@users.noreply.github.com",
+    author="LabNow.ai",
+    author_email="postmaster@labnow.ai",
     license="Apache Software License",
-    url="https://github.com/QPod/aloha",
+    url="https://github.com/LabNow.ai/aloha",
     project_urls={
-        "Source": "https://github.com/QPod/aloha",
-        "CI Pipeline": "https://github.com/QPod/aloha/actions",
+        "Source": "https://github.com/LabNow-ai/aloha",
+        "CI Pipeline": "https://github.com/LabNow-ai/aloha-python/actions",
         "Documentation": "https://aloha-python.readthedocs.io/",
     },
     packages=find_packages(where=".", exclude=("app_common*",)),

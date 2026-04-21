@@ -3,7 +3,7 @@
 Aloha! Thanks for your interesting in this python package.
 
 [![License](https://img.shields.io/github/license/QPod/aloha-python)](https://github.com/QPod/aloha-python/blob/main/LICENSE)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/QPod/aloha-python/build.yml)](https://github.com/QPod/aloha-python/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/QPod/aloha-python/build.yml?branch=main)](https://github.com/QPod/aloha-python/actions)
 [![Join the Gitter Chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/QPod/)
 [![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.python.org/pypi/aloha/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/aloha)](https://pepy.tech/badge/aloha/)

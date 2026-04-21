@@ -14,7 +14,7 @@ psutil
 pyjwt
 
 #  db
-sqlalchemy<2
+sqlalchemy<3
 psycopg2-binary
 pymysql
 elasticsearch

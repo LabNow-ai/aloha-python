@@ -55,7 +55,12 @@ class CyberArkVault(BaseVault, AesEncryptor):
         while retry:
             try:
                 LOG.debug("POST CyberArk: %s with data: %s", self.url, data)
-                resp = requests.post(self.url, json=data, verify=False, headers={"Content-Type": "application/json"})
+                resp = requests.post(
+                    self.url,
+                    json=data,
+                    headers={"Content-Type": "application/json"},
+                    # verify=False,
+                )
                 tmp = resp.json()
                 if resp.status_code == 200 and int(tmp["code"]) == 200:
                     LOG.debug("Got data from CyberArk: %s", tmp)
@@ -100,4 +105,5 @@ def main():
     # cfg_cyberark = SETTINGS.config['CYBERARK_CONFIG']
     vault = CyberArkVault(**cfg_cyberark)
     pwd = vault.get_password({"object": "PG_"})
+    assert pwd is not None
     # print(pwd)

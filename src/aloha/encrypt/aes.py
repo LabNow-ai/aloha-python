@@ -46,7 +46,12 @@ class AesEncryptor:
     def encrypt(self, text: str, output_format="hex", func_pad: Optional[Callable] = None) -> Union[str, bytes]:
         dict_params, pad_style = _AES_CIPHER_METHODS.get(self.cipher_name)
         if not callable(func_pad):
-            func_pad = lambda x: pad(data, block_size=self.block_size, style=pad_style)
+
+            def _func_pad(x):
+                return pad(x, block_size=self.block_size, style=pad_style)
+
+            if not callable(func_pad):
+                func_pad = _func_pad
 
         data = text.encode()
         padded = func_pad(data)
@@ -78,8 +83,12 @@ class AesEncryptor:
         dict_params, pad_style = _AES_CIPHER_METHODS.get(self.cipher_name)
         cipher = AES.new(key=self.key_aes, **dict_params)
         data = cipher.decrypt(crypt)
+
+        def _func_unpad(x):
+            return unpad(x, block_size=self.block_size, style=pad_style)
+
         if not callable(func_unpad):
-            func_unpad = lambda x: unpad(x, block_size=self.block_size, style=pad_style)
+            func_unpad = _func_unpad
         data = func_unpad(data)
         return data.decode("UTF-8")
 
@@ -89,4 +98,5 @@ def main():
     src = "hello~"
     enc = a.encrypt(src, output_format="base64")
     dec = a.decrypt(enc, input_format="base64")
+    assert src == dec
     # print(enc, dec, src == dec)

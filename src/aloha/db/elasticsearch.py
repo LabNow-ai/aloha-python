@@ -36,18 +36,18 @@ class ElasticSearchOperator:
 
     @staticmethod
     def _load_config(config):
-        if type(config) == dict:
+        if isinstance(config, dict):
             return config
 
-        elif type(config) == str and ".json" in config:
+        elif isinstance(config, str) and ".json" in config:
             with open(config, "r", encoding="utf-8") as f:
                 config = json.load(f)
             return config
 
         else:
-            raise Exception("Invalid ES config data type")
+            raise ValueError("Invalid ES config data type")
 
-    def put_mapping(self, index_name=None, index_type=None, index_config=None):
+    def put_mapping(self, index_name=None, index_type=None, index_config: dict | None = None):
         return self.es.indices.put_mapping(
             index=index_name or self.index_name,
             doc_type=index_type or self.index_type,

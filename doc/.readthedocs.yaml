@@ -11,6 +11,8 @@ build:
   jobs:
     pre_create_environment:
       - echo "Command run at 'pre_create_environment' step"
+    pre_build:
+      - 'case "${READTHEDOCS_LANGUAGE}" in zh*) cp ./doc/mkdocs.zh.yml ./doc/mkdocs.yml ;; esac'
     post_build:
       - echo "Command run at 'post_build' step $(date)"
 
@@ -22,3 +24,5 @@ python:
     - requirements: ./doc/requirements.txt
     - method: pip
       path: ./src
+      extra_requirements:
+        - all

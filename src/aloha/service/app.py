@@ -1,4 +1,4 @@
-__all__ = ('Application',)
+"""Service application bootstrap utilities."""
 
 import asyncio
 
@@ -8,52 +8,38 @@ try:
     import uvloop
     from tornado.platform.asyncio import AsyncIOMainLoop
 
-    LOG.info('Using uvloop == %s for service event loop...' % uvloop.__version__)
+    LOG.info("Using uvloop == %s for service event loop..." % uvloop.__version__)
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     AsyncIOMainLoop().install()
 except ImportError:
-    LOG.info('[uvloop] NOT installed, fallback to asyncio loop! Consider `pip install uvloop`!')
+    LOG.info("[uvloop] NOT installed, fallback to asyncio loop! Consider `pip install uvloop`!")
 
 from tornado.options import options
 
 from ..settings import SETTINGS
 from .web import WebApplication
 
+__all__ = ("Application",)
+
 
 class Application:
-    """
-    Main application class for aloha service.
-    
-    Wraps a WebApplication and manages the event loop lifecycle.
-    Tries to use uvloop if available for better performance.
-    """
+    """Bootstrap and run an aloha web service."""
+
     def __init__(self, *args, **kwargs):
-        """
-        Initialize the application.
-        
-        :param args: Additional arguments
-        :param kwargs: Additional keyword arguments
-        """
-        options['log_file_prefix'] = 'access.log'
+        """Create the service application wrapper."""
+        options["log_file_prefix"] = "access.log"
         settings = dict(SETTINGS.config)
         self.web_app = WebApplication(settings)
 
     def start(self):
-        """
-        Start the application and run the event loop.
-        
-        Starts the web application and enters the event loop.
-        The event loop must not be running before calling this method.
-        
-        :raises RuntimeError: If event loop is already running
-        """
+        """Start the web app and run the asyncio event loop."""
         try:
             self.web_app.start()
             event_loop = asyncio.get_event_loop()
             if event_loop.is_running():
                 # notice: the event loop MUST NOT be initialized before web_app starts (as it may fork process)
                 # ref: https://github.com/tornadoweb/tornado/issues/2426#issuecomment-400895086
-                raise RuntimeError('Event loop already running before WebApp starts!')
+                raise RuntimeError("Event loop already running before WebApp starts!")
             else:
                 event_loop.run_forever()
         except KeyboardInterrupt:
@@ -64,9 +50,7 @@ class Application:
             pass
 
     def stop(self):
-        """
-        Stop the application and event loop.
-        """
+        """Stop the event loop if it is currently running."""
         event_loop = asyncio.get_event_loop()
         if event_loop.is_running():
             event_loop.stop()

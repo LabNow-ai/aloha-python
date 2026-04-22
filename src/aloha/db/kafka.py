@@ -1,4 +1,4 @@
-__all__ = ("KafkaOperator",)
+"""Kafka connection helpers."""
 
 import json
 import typing
@@ -8,10 +8,14 @@ import confluent_kafka.admin as kafka_admin
 
 from ..logger import LOG
 
+__all__ = ("KafkaOperator",)
+
 LOG.debug("Version of confluent_kafka client = %s" % kafka.__version__)
 
 
 class KafkaOperator:
+    """Create Kafka admin, producer, and consumer clients."""
+
     def __init__(self, kafka_config):
         """
         Parameter reference: https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
@@ -30,11 +34,13 @@ class KafkaOperator:
         LOG.debug("Kafka connection info: " + str(self._config))
 
     def admin_client(self, *args, **kwargs):
+        """Return a configured Kafka AdminClient."""
         config_admin = {**self._config}
         a = kafka_admin.AdminClient(config_admin)
         return a
 
     def create_topic(self, topic: str, num_partitions=3, replication_factor=1, *args, **kwargs):
+        """Create a Kafka topic and wait for the broker response."""
         """Note: In a multi-cluster production scenario, it is more typical to use a replication_factor of 3 for durability."""
         a = self.admin_client()
         new_topic = kafka_admin.NewTopic(topic, num_partitions=num_partitions, replication_factor=replication_factor)
@@ -56,6 +62,7 @@ class KafkaOperator:
         return True
 
     def producer_deliver(self, topic: str, generator: typing.Iterator[str], func_callback: callable = None, *args, **kwargs):
+        """Stream messages from an iterator into a Kafka topic."""
         # func_callback should be a function that takes two arguments: err and msg
         config_producer = {**self._config}
         p = kafka.Producer(config_producer)
@@ -85,6 +92,7 @@ class KafkaOperator:
     def consumer_generator(
         self, topics_subscribe: list, group_id: str | None = None, poll_timeout: float = 1.0, *args, **kwargs
     ) -> typing.Iterator[str]:
+        """Yield decoded messages from the subscribed Kafka topics."""
         config_consumer = {"auto.offset.reset": "earliest", **self._config}
         if group_id is not None:
             config_consumer["group.id"] = group_id

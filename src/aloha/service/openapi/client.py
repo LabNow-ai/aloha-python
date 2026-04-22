@@ -1,3 +1,5 @@
+"""Client helper for OpenAPI-style services protected by tokens."""
+
 import json
 from datetime import datetime, timedelta
 from typing import Optional
@@ -14,10 +16,13 @@ except ImportError:
 
 
 class OpenApiClient:
+    """Simple HTTP client that acquires and caches an access token."""
+
     retry_method_whitelist = frozenset(['GET', 'POST'])
     retry_status_forcelist = frozenset({413, 429, 503, 502, 504})
 
     def __init__(self, url_oauth_get_token: str, client_id: str, client_secret: str, grant_type: str = 'client_credentials'):
+        """Store OAuth-style client credentials and token endpoint."""
         self.url_oauth_get_token = url_oauth_get_token
         self.client_id = client_id
         self.client_secret = client_secret
@@ -28,6 +33,7 @@ class OpenApiClient:
 
     @classmethod
     def get_request_session(cls, total_retries: int = 10, *args, **kwargs) -> Session:
+        """Create a retry-enabled requests session."""
         session = Session()
         # https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#urllib3.util.Retry.DEFAULT_ALLOWED_METHODS
         retries = Retry(
@@ -38,6 +44,7 @@ class OpenApiClient:
         return session
 
     def get_access_token(self) -> str:
+        """Fetch or refresh the cached access token."""
         now = datetime.now()
 
         if self.expires_at is None or self.expires_at > now:
@@ -63,6 +70,7 @@ class OpenApiClient:
         return self.access_token
 
     def _get_request_url(self, url: str):
+        """Attach access token and request id to the target URL."""
         request_url = '{url}?access_token={access_token}&request_id={request_id}'.format(
             url=url, access_token=self.get_access_token(), request_id=datetime.now().strftime('%Y%m%d-%H%M%S-%f')
         )
@@ -70,6 +78,7 @@ class OpenApiClient:
 
     @staticmethod
     def _get_data_from_esg_response(resp) -> Optional[dict]:
+        """Parse a JSON response and unwrap legacy ESG payloads."""
         try:
             return resp.json()
         except (json.JSONDecodeError, JSONDecodeError):  # requests may use `simplejson`
@@ -83,6 +92,7 @@ class OpenApiClient:
                 raise ValueError(msg)
 
     def post(self, url_api: str, body: dict, headers: dict = None, timeout: int = 5):
+        """Send a POST request to the remote API."""
         url = self._get_request_url(url_api)
         LOG.debug('Calling ESG POST: %s' % url)
         try:
@@ -92,6 +102,7 @@ class OpenApiClient:
             LOG.error('Error calling ESG API POST [%s]: %s' % (url, str(e)))
 
     def get(self, url_api: str, body: dict, headers: dict = None, timeout: int = 5):
+        """Send a GET request to the remote API."""
         url = self._get_request_url(url_api)
         LOG.debug('Calling ESG GET: %s' % url)
         try:

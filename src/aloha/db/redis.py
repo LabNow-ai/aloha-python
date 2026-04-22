@@ -1,4 +1,4 @@
-__all__ = ("RedisOperator",)
+"""Redis connection helpers."""
 
 import redis
 from packaging import version
@@ -6,9 +6,14 @@ from packaging import version
 from ..logger import LOG
 from .base import PasswordVault
 
+__all__ = ("RedisOperator",)
+
 
 class RedisOperator:
+    """Create Redis connections with version-checked redis-py."""
+
     def __init__(self, config):
+        """Normalize Redis connection settings and build connection metadata."""
         self._check_redis_version()
 
         password_vault = PasswordVault.get_vault(config.get("vault_type"), config.get("vault_config"))
@@ -30,6 +35,7 @@ class RedisOperator:
 
     @staticmethod
     def _check_redis_version() -> bool:
+        """Ensure a redis-py version new enough for the helpers is installed."""
         ver_min = version.parse("4.1.0")
         valid = False
         try:
@@ -50,7 +56,7 @@ class RedisOperator:
 
     @property
     def connection_generic(self):
-        """https://github.com/redis/redis-py/blob/master/redis/client.py"""
+        """Return a standard Redis client."""
         LOG.debug("StrictRedis connection info: {host}:{port}".format(**self._config))
 
         if self._pool is None:
@@ -59,5 +65,6 @@ class RedisOperator:
 
     @property
     def connection_cluster(self):
+        """Return a Redis Cluster client."""
         LOG.debug("RedisCluster connection info: {host}:{port}".format(**self._config))
         return redis.RedisCluster(**self._config)

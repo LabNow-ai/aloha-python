@@ -1,3 +1,5 @@
+"""Base HTTP client helpers for aloha API clients."""
+
 import uuid
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
@@ -10,17 +12,21 @@ from ...settings import SETTINGS
 
 
 class AbstractApiClient(ABC):
+    """Common client behavior for aloha HTTP APIs."""
+
     LOG = LOG
     RETRY_METHOD_WHITELIST: frozenset = frozenset(['GET', 'POST'])
     RETRY_STATUS_FORCELIST: frozenset = frozenset({413, 429, 503, 502, 504})
     config = SETTINGS.config
 
     def __init__(self, url_endpoint: str = None, *args, **kwargs):
+        """Store the endpoint used by the client."""
         self.url_endpoint = url_endpoint or ''
         LOG.debug('API Caller URL endpoint set to: %s' % self.url_endpoint)
 
     @classmethod
     def get_request_session(cls, total_retries: int = 3, *args, **kwargs) -> requests.Session:
+        """Create a requests session with retry support."""
         session = requests.Session()
         # https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#urllib3.util.Retry.DEFAULT_ALLOWED_METHODS
         retries = Retry(
@@ -31,6 +37,7 @@ class AbstractApiClient(ABC):
         return session
 
     def get_headers(self, *args, **kwargs) -> dict:
+        """Build the default request headers used by aloha clients."""
         headers = {
             'Content-Type': 'application/json',
             'Request-ID': str(uuid.uuid1()),
@@ -39,18 +46,13 @@ class AbstractApiClient(ABC):
 
     @abstractmethod
     def wrap_request_data(self, data: dict) -> dict:
+        """Transform the request payload before sending it."""
         assert isinstance(data, dict), "Data object must be a dict!"
         raise NotImplementedError()
         # return data
 
     def call(self, api_url: str, data: dict = None, timeout=5, **kwargs):
-        """Trigger API call
-        :param api_url: do NOT start with slash (/)
-        :param data: a dictionary which includes the request data
-        :param timeout: requests timeout in seconds
-        :param kwargs: keywords arguments which will be updated to data
-        :return:
-        """
+        """Call a remote API and return the parsed JSON response."""
         body = data or dict()
         body.update(kwargs)
         payload = self.wrap_request_data(data=body)

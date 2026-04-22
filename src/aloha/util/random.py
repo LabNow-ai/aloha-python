@@ -1,3 +1,7 @@
+"""Random helper aliases built on top of `secrets.SystemRandom`."""
+
+from secrets import SystemRandom
+
 __all__ = (
     "random",
     "random_bool",
@@ -9,28 +13,16 @@ __all__ = (
     "random_seed",
 )
 
-from secrets import SystemRandom
-
 random = SystemRandom()
+
+random_choice = random.choice
+random_int = random.randint
+random_ratio = random.random
+random_uniform = random.uniform
+random_sample = random.sample
+random_seed = random.seed
 
 
 def random_bool():
+    """Return a random boolean value."""
     return random.choice([True, False])
-
-
-random_choice = random.choice
-
-
-random_int = random.randint
-
-
-random_ratio = random.random
-
-
-random_uniform = random.uniform
-
-
-random_sample = random.sample
-
-
-random_seed = random.seed

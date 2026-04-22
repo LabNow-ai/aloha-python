@@ -14,12 +14,22 @@ with open("./aloha/_version.py", "wt") as fp:
 dict_extra_requires = {
     "build": ["Cython"],
     "service": ["requests", "tornado", "psutil", "pyjwt", "fastapi", "httpx"],
-    "db": ["sqlalchemy", "psycopg[binary]", "pymysql", "elasticsearch", "pymongo", "redis"],
+    "db": [
+        "sqlalchemy",
+        "psycopg[binary]",
+        "pymysql",
+        "elasticsearch",
+        "pymongo",
+        "redis",
+        "duckdb",
+        "duckdb-engine",
+        "oracledb",
+    ],
     "stream": ["confluent_kafka"],
-    "data": ["pandas"],
+    "data": ["pandas", "lxml"],
     "report": ["openpyxl", "XlsxWriter"],
     "test": ["pytest-cov"],
-    "docs": ["mkdocs", "mkdocs-static-i18n", "mkdocstrings[python]", "markdown-include", "mkdocs-material"],
+    "docs": ["mkdocs", "mkdocstrings[python]", "markdown-include", "mkdocs-material"],
 }
 
 setup(
@@ -30,7 +40,7 @@ setup(
     license="Apache-2.0",
     url="https://github.com/LabNow.ai/aloha",
     project_urls={
-        "Source": "https://github.com/LabNow-ai/aloha",
+        "Source": "https://github.com/LabNow-ai/aloha-python",
         "CI Pipeline": "https://github.com/LabNow-ai/aloha-python/actions",
         "Documentation": "https://aloha-python.readthedocs.io/",
     },

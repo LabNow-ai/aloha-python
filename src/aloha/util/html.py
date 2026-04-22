@@ -1,9 +1,12 @@
+"""HTML extraction helpers."""
+
 import re
 
 from lxml import etree
 
 
 def extract_img_url(string):
+    """Extract the first image source URL from an HTML fragment."""
     try:
         if string is None:
             return None
@@ -16,6 +19,7 @@ def extract_img_url(string):
 
 
 def extract_text(raw_data):
+    """Extract visible text from an HTML fragment."""
     if raw_data is not None:
         raw_data = re.sub(r"<script>[\s\S]*</script>", "", raw_data)
         html = etree.HTML(raw_data)

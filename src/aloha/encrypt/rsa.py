@@ -1,4 +1,4 @@
-__all__ = ("RsaEncryptor",)
+"""RSA encrypt/decrypt and signing helpers."""
 
 import base64
 from functools import lru_cache
@@ -8,6 +8,8 @@ from Crypto.Cipher import PKCS1_OAEP, PKCS1_v1_5
 from Crypto.Hash import SHA1, SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pss
+
+__all__ = ("RsaEncryptor",)
 
 t_cipher_module = Union[PKCS1_v1_5.PKCS115_Cipher, PKCS1_OAEP.PKCS1OAEP_Cipher]
 
@@ -19,6 +21,8 @@ _RSA_CIPHER_METHODS = {  # FULL_CIPHER_NAME: (module, dict_params)
 
 
 class RsaEncryptor:
+    """Encrypt, decrypt, and convert RSA keys and payloads."""
+
     _dict_cache_cipher = {}
     _dict_cache_decipher = {}
     supported_cipher_methods = _RSA_CIPHER_METHODS
@@ -27,6 +31,7 @@ class RsaEncryptor:
     def __init__(
         self, key_private: str | None = None, key_public: str | None = None, cipher_name: str = "RSA/ECB/PKCS1Padding"
     ):
+        """Load optional keys and select a cipher profile."""
         self.key_private, self.key_public = self.load_keys_from_string(key_private=key_private, key_public=key_public)
         assert self._get_cipher_module(cipher_name) is not None, "Invalid cipher_name!"
         self.cipher_name = cipher_name
@@ -40,12 +45,14 @@ class RsaEncryptor:
 
     @staticmethod
     def generate_key_pair(size: int = 1024) -> Tuple[str, str]:
+        """Generate a PEM-encoded RSA key pair."""
         key_pair = RSA.generate(size)
         key_private, key_public = key_pair.exportKey(), key_pair.publickey().exportKey()
         return key_private.decode("ascii"), key_public.decode("ascii")
 
     @lru_cache
     def get_cipher(self, key_public: str | None = None, cipher_name="RSA/ECB/PKCS1Padding") -> t_cipher_module:
+        """Return a cached public-key cipher instance."""
         if key_public is None:
             key_pub = self.key_public
         else:
@@ -61,6 +68,7 @@ class RsaEncryptor:
 
     @lru_cache
     def get_decipher(self, key_private: str | None = None, cipher_name="RSA/ECB/PKCS1Padding") -> t_cipher_module:
+        """Return a cached private-key decipher instance."""
         if key_private is None:
             key_pri = self.key_private
         else:
@@ -78,6 +86,7 @@ class RsaEncryptor:
     def load_keys_from_binary(
         key_private: bytes | None = None, key_public: bytes | None = None
     ) -> Tuple[Optional[RSA.RsaKey], Optional[RSA.RsaKey]]:
+        """Load RSA keys from PEM/DER bytes."""
         _key_private, _key_public = None, None
 
         if key_private is not None:
@@ -98,6 +107,7 @@ class RsaEncryptor:
     def load_keys_from_string(
         key_private: str | None = None, key_public: str | None = None
     ) -> Tuple[Optional[RSA.RsaKey], Optional[RSA.RsaKey]]:
+        """Load RSA keys from PEM-like strings."""
         _key_private, _key_public = None, None
 
         if key_private is not None:
@@ -125,6 +135,7 @@ class RsaEncryptor:
     def encrypt_with_public_key(
         self, message: Union[str, bytes], key_public: str | None = None, cipher_name: str = None
     ) -> bytes:
+        """Encrypt a message with a public key."""
         data = message if isinstance(message, bytes) else message.encode("UTF-8")
         cipher = self.get_cipher(key_public=key_public, cipher_name=cipher_name or self.cipher_name)
         return cipher.encrypt(data)
@@ -132,20 +143,24 @@ class RsaEncryptor:
     def decrypt_with_private_key(
         self, ciphertext: Union[str, bytes], key_private: str | None = None, cipher_name: str | None = None, **kwargs
     ) -> bytes:
+        """Decrypt ciphertext with a private key."""
         data = ciphertext if isinstance(ciphertext, bytes) else ciphertext.encode("ascii")
         decipher = self.get_decipher(key_private=key_private, cipher_name=cipher_name or self.cipher_name)
         return decipher.decrypt(data, **kwargs)
 
     @staticmethod
     def convert_bytes_to_base64(data: bytes) -> str:
+        """Encode raw bytes as base64 text."""
         return base64.b64encode(data).decode()
 
     @staticmethod
     def convert_base64_to_bytes(data: str) -> bytes:
+        """Decode base64 text into raw bytes."""
         return base64.decodebytes(data.encode("ascii"))
 
 
 def main():
+    """Small self-test for the RSA helper."""
     key_pairs = [  # private_key, public_key
         RsaEncryptor.generate_key_pair(),
     ]

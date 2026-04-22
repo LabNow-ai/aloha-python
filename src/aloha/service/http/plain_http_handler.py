@@ -1,13 +1,19 @@
+"""Plain Tornado handler with permissive CORS defaults."""
+
 from typing import Optional, Awaitable
 
 from tornado import web
 
 
 class PlainHttpHandler(web.RequestHandler):
+    """Minimal handler that exposes JSON-friendly CORS headers."""
+
     def data_received(self, chunk: bytes) -> Optional[Awaitable[None]]:
+        """Accept streamed body chunks without additional processing."""
         pass
 
     def set_default_headers(self):
+        """Enable permissive cross-origin access for simple APIs."""
         self.set_header('Access-Control-Allow-Origin', '*')
         self.set_header('Access-Control-Allow-Headers', '*')
         self.set_header('Access-Control-Max-Age', 1000)

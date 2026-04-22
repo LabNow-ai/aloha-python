@@ -19,7 +19,7 @@ dict_extra_requires = {
     "data": ["pandas"],
     "report": ["openpyxl", "XlsxWriter"],
     "test": ["pytest-cov"],
-    "docs": ["mkdocs", "mkdocstrings[python]", "markdown-include", "mkdocs-material"],
+    "docs": ["mkdocs", "mkdocs-static-i18n", "mkdocstrings[python]", "markdown-include", "mkdocs-material"],
 }
 
 setup(

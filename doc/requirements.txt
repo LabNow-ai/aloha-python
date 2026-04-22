@@ -36,6 +36,7 @@ pytest-cov
 
 #  docs
 mkdocs
+mkdocs-static-i18n
 mkdocstrings[python]
 markdown-include
 mkdocs-material

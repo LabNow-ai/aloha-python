@@ -2,16 +2,12 @@
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
-# Required
 version: 2
 
-# Set the version of Python and other tools you might need
 build:
   os: ubuntu-lts-latest
   tools:
     python: "3"
-    # nodejs: "latest"
-  # apt_packages: []
   jobs:
     pre_create_environment:
       - echo "Command run at 'pre_create_environment' step"
@@ -21,9 +17,8 @@ build:
 mkdocs:
   configuration: ./doc/mkdocs.yml
 
-# Optionally declare the Python requirements required to build your docs
 python:
   install:
+    - requirements: ./doc/requirements.txt
     - method: pip
       path: ./src
-      extra_requirements: [docs, base]

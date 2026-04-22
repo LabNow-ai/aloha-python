@@ -1,9 +1,9 @@
-# Development Docs
+# 开发文档
 
-## Live debug on source code using docker
+## 使用 Docker 对源码进行实时调试
 
 ```bash
-# Firstly, cd to the project root folder (which includes `src`) of the project, and then:
+# 先进入项目根目录（该目录包含 `src`），然后执行：
 docker run -it \
   -v $(pwd):/root/app/ \
   -w /root/app/src \
@@ -14,14 +14,14 @@ docker run -it \
 python -m aloha.script.start app_common.debug
 ```
 
-## Build docker image
+## 构建 Docker 镜像
 
 ```bash
 source tool/tool.sh
 build_image app_common latest tool/app.Dockerfile
 ```
 
-## Develop docs
+## 开发文档
 
 ```bash
 mkdocs serve -f mkdocs.yml -a 0.0.0.0:80

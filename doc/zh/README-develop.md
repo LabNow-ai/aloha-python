@@ -24,5 +24,5 @@ build_image app_common latest tool/app.Dockerfile
 ## 开发文档
 
 ```bash
-mkdocs serve -f mkdocs.yml -a 0.0.0.0:80
+mkdocs serve -f mkdocs.yml -a 0.0.0.0:3000
 ```

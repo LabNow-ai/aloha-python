@@ -17,7 +17,7 @@ dict_extra_requires = {
     "db": ["sqlalchemy", "psycopg[binary]", "pymysql", "elasticsearch", "pymongo", "redis"],
     "stream": ["confluent_kafka"],
     "data": ["pandas"],
-    "report": ["openpyxl>=3", "XlsxWriter"],
+    "report": ["openpyxl", "XlsxWriter"],
     "test": ["pytest-cov"],
     "docs": ["mkdocs", "mkdocstrings[python]", "markdown-include", "mkdocs-material"],
 }

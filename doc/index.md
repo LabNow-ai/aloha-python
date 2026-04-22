@@ -11,11 +11,6 @@ Aloha! Thanks for your interesting in this python package.
 [![Recent Code Update](https://img.shields.io/github/last-commit/LabNow-ai/docker-images.svg)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
 Please generously STAR★ our project or donate to us! [![GitHub Starts](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
-[![Donate-PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/haobibo)
-[![Donate-AliPay](https://img.shields.io/badge/Donate-Alipay-blue.svg)](https://raw.githubusercontent.com/wiki/haobibo/resources/img/Donate-AliPay.png)
-[![Donate-WeChat](https://img.shields.io/badge/Donate-WeChat-green.svg)](https://raw.githubusercontent.com/wiki/haobibo/resources/img/Donate-WeChat.png)
-
-## What is it?
 
 The python package `aloha` is a cute and versatile to build python microservices.
 The package encapsulates commonly used components and features, such as:

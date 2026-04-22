@@ -52,9 +52,9 @@ jobs:
 
       - name: pip-install-test
         run: |
-          sudo pip3 install -UI pip && sudo pip3 install -UI setuptools wheel twine pyOpenSSL
+          sudo pip3 install -UI pip && sudo pip3 install -UI build setuptools wheel twine pyOpenSSL
           cd src
-          sudo python3 setup.py sdist bdist_wheel
+          sudo python3 -m build
           pip3 install ./dist/*.tar.gz
           aloha info
           pip3 list | sort
@@ -66,7 +66,7 @@ jobs:
         run: |
           env | sort -f && cd src && ls -alh
           sudo python3 -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
-          sudo python3 setup.py sdist bdist_wheel
+          sudo python3 -m build
           ls -alh ./dist
 
           if [ "${GITHUB_REPOSITORY}" = "QPod/aloha-python" ] && [ "${GITHUB_REF_NAME}" = "main" ] ; then

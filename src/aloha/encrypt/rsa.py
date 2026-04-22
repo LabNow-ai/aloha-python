@@ -1,5 +1,3 @@
-__all__ = ("RsaEncryptor",)
-
 """RSA encrypt/decrypt and signing helpers."""
 
 import base64
@@ -10,6 +8,8 @@ from Crypto.Cipher import PKCS1_OAEP, PKCS1_v1_5
 from Crypto.Hash import SHA1, SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pss
+
+__all__ = ("RsaEncryptor",)
 
 t_cipher_module = Union[PKCS1_v1_5.PKCS115_Cipher, PKCS1_OAEP.PKCS1OAEP_Cipher]
 

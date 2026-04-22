@@ -1,12 +1,12 @@
 """Redis connection helpers."""
 
-__all__ = ("RedisOperator",)
-
 import redis
 from packaging import version
 
 from ..logger import LOG
 from .base import PasswordVault
+
+__all__ = ("RedisOperator",)
 
 
 class RedisOperator:

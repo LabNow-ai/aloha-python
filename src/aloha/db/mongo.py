@@ -1,7 +1,5 @@
 """MongoDB connection helpers."""
 
-__all__ = ("MongoOperator",)
-
 import ipaddress
 import json
 
@@ -9,6 +7,8 @@ import pymongo
 
 from ..logger import LOG
 from .base import PasswordVault
+
+__all__ = ("MongoOperator",)
 
 
 def _is_ip_addr(s):

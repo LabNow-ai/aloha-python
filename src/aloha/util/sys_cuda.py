@@ -1,8 +1,9 @@
-__all__ = ("get_cuda_info",)
-
 from collections import namedtuple
 
 from ..logger import LOG
+
+__all__ = ("get_cuda_info",)
+
 
 Status = namedtuple("Status", "version,gpu_availability")
 

@@ -1,5 +1,3 @@
-__all__ = ("get_gpu_info",)
-
 # ! `pip install pynvml`, reference: https://github.com/gpuopenanalytics/pynvml
 
 from collections import namedtuple
@@ -14,6 +12,8 @@ try:
 except ImportError:
     LOG.warn("Package `pynvml` NOT installed! Cannot get GPU info.")
     nvml = nvidia_smi = None
+
+__all__ = ("get_gpu_info",)
 
 Device = namedtuple("Device", field_names="index,name,arch")
 DeviceStatus = namedtuple("DeviceStatus", field_names="mem_total,mem_free,mem_used,gpu_rate,mem_rate")

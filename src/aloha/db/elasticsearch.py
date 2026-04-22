@@ -1,13 +1,13 @@
 """Elasticsearch connection helpers."""
 
-__all__ = ("ElasticSearchOperator",)
-
 import json
 
 from elasticsearch import Elasticsearch
 
 from ..logger import LOG
 from .base import PasswordVault
+
+__all__ = ("ElasticSearchOperator",)
 
 
 class ElasticSearchOperator:

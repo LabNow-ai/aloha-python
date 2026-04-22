@@ -1,11 +1,11 @@
-__all__ = ("get_sys_info",)
-
 import platform
 from datetime import datetime
 
 import psutil
 
 from ..logger import LOG
+
+__all__ = ("get_sys_info",)
 
 LOG.debug("Using psutil == %s" % psutil.__version__)
 

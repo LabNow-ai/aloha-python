@@ -4,8 +4,6 @@ Version 1 adds request signing with `app_id`, `salt_uuid`, and `sign` fields.
 Handlers validate the signature before dispatching to the service logic.
 """
 
-__all__ = ("APIHandler", "APICaller", "sign_data", "sign_check")
-
 import json
 import logging
 import uuid
@@ -14,6 +12,8 @@ from abc import ABC
 from ...encrypt.hash import get_md5_of_str, get_sha256_of_str
 from ...settings import SETTINGS
 from ..http import AbstractApiClient, AbstractApiHandler
+
+__all__ = ("APIHandler", "APICaller", "sign_data", "sign_check")
 
 APP_ID_KEYS = SETTINGS.config.get("APP_ID_KEYS", {})
 APP_OPTIONS = SETTINGS.config.get("APP_OPTIONS", {})

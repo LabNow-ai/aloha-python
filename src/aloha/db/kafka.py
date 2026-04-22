@@ -1,7 +1,5 @@
 """Kafka connection helpers."""
 
-__all__ = ("KafkaOperator",)
-
 import json
 import typing
 
@@ -9,6 +7,8 @@ import confluent_kafka as kafka
 import confluent_kafka.admin as kafka_admin
 
 from ..logger import LOG
+
+__all__ = ("KafkaOperator",)
 
 LOG.debug("Version of confluent_kafka client = %s" % kafka.__version__)
 

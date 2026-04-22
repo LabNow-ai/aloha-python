@@ -4,8 +4,6 @@ This script build a given python package into a package of dynamic library (.so)
 Example: python -m aloha.script.compile --base=./ --dist=../build --keep='main.py'
 """
 
-__all__ = ("build", "package")
-
 import argparse
 import glob
 import os
@@ -18,6 +16,8 @@ try:
     from Cython.Build import cythonize
 except ImportError:
     raise RuntimeError("Please pip install Cython first!")
+
+__all__ = ("build", "package")
 
 
 def _expand(patterns: list | None = None):

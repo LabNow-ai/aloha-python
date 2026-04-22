@@ -1,13 +1,13 @@
 """Oracle DB connection helpers."""
 
-__all__ = ("OracledbOperator",)
-
 import oracledb
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 
 from ..logger import LOG
 from .base import PasswordVault
+
+__all__ = ("OracledbOperator",)
 
 LOG.debug("oracledb version = %s" % oracledb.__version__)
 

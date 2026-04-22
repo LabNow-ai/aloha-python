@@ -1,13 +1,13 @@
 """PostgreSQL connection helpers."""
 
-__all__ = ("PostgresOperator",)
-
 import psycopg
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 
 from ..logger import LOG
 from .base import PasswordVault
+
+__all__ = ("PostgresOperator",)
 
 LOG.debug("postgres: psycopg version = %s" % psycopg.__version__)
 

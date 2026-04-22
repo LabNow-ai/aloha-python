@@ -1,7 +1,5 @@
 """DuckDB connection helpers."""
 
-__all__ = ("DuckOperator",)
-
 from pathlib import Path
 
 import duckdb
@@ -9,6 +7,8 @@ import duckdb_engine
 from sqlalchemy import create_engine, text
 
 from aloha.logger import LOG
+
+__all__ = ("DuckOperator",)
 
 LOG.debug("duckdb version = %s, duckdb_engine = %s " % (duckdb.__version__, duckdb_engine.__version__))
 

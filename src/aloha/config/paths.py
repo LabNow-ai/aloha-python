@@ -1,8 +1,8 @@
-__all__ = ("get_resource_dir", "get_config_dir", "get_current_module_dir", "get_project_base_dir", "path_join")
-
 import os
 import sys
 import warnings
+
+__all__ = ("get_resource_dir", "get_config_dir", "get_current_module_dir", "get_project_base_dir", "path_join")
 
 
 def path_join(*args) -> str:

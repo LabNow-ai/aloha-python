@@ -1,13 +1,13 @@
 """MySQL connection helpers."""
 
-__all__ = ("MySqlOperator",)
-
 import pymysql
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 
 from ..logger import LOG
 from .base import PasswordVault
+
+__all__ = ("MySqlOperator",)
 
 LOG.debug("Version of pymysql = %s" % pymysql.__version__)
 

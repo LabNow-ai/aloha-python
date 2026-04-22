@@ -1,5 +1,5 @@
 site_name: Aloha - a versatile Python library to build microservice.
-repo_url: https://github.com/LabNow-ai/aloha
+repo_url: https://github.com/LabNow-ai/aloha-python
 edit_uri: blob/main/doc/en/
 site_url: !ENV READTHEDOCS_CANONICAL_URL
 docs_dir: ./en

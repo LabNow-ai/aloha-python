@@ -30,7 +30,7 @@ setup(
     license="Apache-2.0",
     url="https://github.com/LabNow.ai/aloha",
     project_urls={
-        "Source": "https://github.com/LabNow-ai/aloha",
+        "Source": "https://github.com/LabNow-ai/aloha-python",
         "CI Pipeline": "https://github.com/LabNow-ai/aloha-python/actions",
         "Documentation": "https://aloha-python.readthedocs.io/",
     },

@@ -19,7 +19,7 @@ Please generously STAR★ our project or donate to us!
 
 ## Getting started
 
-Refer to[📚 Document & 中文文档](https://aloha-python.readthedocs.io/) for detailed introduction.
+Refer to 📚 [Document](https://aloha-python.readthedocs.io/) & [中文文档](https://aloha-python.readthedocs.io/zh-cn/main/) for detailed introduction.
 
 ```shell
 pip install aloha[all]

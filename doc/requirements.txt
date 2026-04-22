@@ -14,12 +14,12 @@ psutil
 pyjwt
 
 #  db
-sqlalchemy<2
+sqlalchemy
 psycopg2-binary
 pymysql
 elasticsearch
 pymongo
-redis>4.2.0
+redis
 
 #  stream
 confluent_kafka
@@ -28,7 +28,7 @@ confluent_kafka
 pandas
 
 #  report
-openpyxl>=3
+openpyxl
 XlsxWriter
 
 #  test

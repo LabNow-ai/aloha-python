@@ -17,7 +17,7 @@ dict_extra_requires = {
     "db": ["sqlalchemy", "psycopg[binary]", "pymysql", "elasticsearch", "pymongo", "redis"],
     "stream": ["confluent_kafka"],
     "data": ["pandas"],
-    "report": ["openpyxl>=3", "XlsxWriter"],
+    "report": ["openpyxl", "XlsxWriter"],
     "test": ["pytest-cov"],
     "docs": ["mkdocs", "mkdocstrings[python]", "markdown-include", "mkdocs-material"],
 }
@@ -27,7 +27,7 @@ setup(
     version=_version,
     author="LabNow.ai",
     author_email="postmaster@labnow.ai",
-    license="Apache Software License",
+    license="Apache-2.0",
     url="https://github.com/LabNow.ai/aloha",
     project_urls={
         "Source": "https://github.com/LabNow-ai/aloha",
@@ -55,7 +55,6 @@ setup(
         "Intended Audience :: System Administrators",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
 )

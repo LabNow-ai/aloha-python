@@ -10,4 +10,4 @@ pip install aloha[all]
 
 You can refer to the `app` folder of the GitHub repo to start using `aloha` in your project:
 
-[:octicons-mark-github-16: Go to TemplateProject](https://github.com/LabNow-ai/aloha/tree/main/app){ .md-button }
+[:octicons-mark-github-16: Go to TemplateProject](https://github.com/LabNow-ai/aloha-python/tree/main/app){ .md-button }

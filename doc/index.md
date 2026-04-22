@@ -8,7 +8,7 @@ Aloha! Thanks for your interesting in this python package.
 [![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.python.org/pypi/aloha/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/aloha)](https://pepy.tech/badge/aloha/)
 [![Code Activity](https://img.shields.io/github/commit-activity/m/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/pulse)
-[![Recent Code Update](https://img.shields.io/github/last-commit/LabNow-ai/docker-images.svg)](https://github.com/LabNow-ai/aloha-python/stargazers)
+[![Recent Code Update](https://img.shields.io/github/last-commit/LabNow-ai/aloha-python.svg)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
 Please generously STAR★ our project or donate to us! [![GitHub Starts](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
 

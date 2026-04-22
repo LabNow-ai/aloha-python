@@ -9,7 +9,7 @@ docker run -it \
   -w /root/app/src \
   --name="app-$(whoami)" \
   -p 8080:80 \
-  docker.io/qpod/base:latest bash
+  quay.io/labnow/base:latest bash
 
 python -m aloha.script.start app_common.debug
 ```

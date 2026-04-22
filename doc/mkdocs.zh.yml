@@ -1,8 +1,8 @@
 site_name: Aloha - a versatile Python library to build microservice.
 repo_url: https://github.com/LabNow-ai/aloha
-edit_uri: blob/main/doc/en/
+edit_uri: blob/main/doc/zh/
 site_url: !ENV READTHEDOCS_CANONICAL_URL
-docs_dir: ./en
+docs_dir: ./zh
 theme:
   name: material
   highlightjs: true
@@ -15,24 +15,24 @@ theme:
     - content.tabs.link
     - content.code.annotate
   palette:
-    - media: "(prefers-color-scheme: light)" # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: black
       accent: blues
       toggle:
         icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)" # Palette toggle for dark mode
+        name: 切换到暗色模式
+    - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
       accent: blue
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
+        name: 切换到亮色模式
 plugins:
   - search
   - mkdocstrings:
-      handlers: # See: https://mkdocstrings.github.io/python/usage/
+      handlers:
         python:
           options:
             docstring_style: sphinx
@@ -57,9 +57,9 @@ markdown_extensions:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
 nav:
-  - Introduction: "index.md"
-  - Get Started: "README-get-start.md"
-  - CLI Commands: "README-cli.md"
-  - Configs: "README-config.md"
-  - Development Guide: "README-develop.md"
-  - API Reference: "api.md"
+  - 介绍: "index.md"
+  - 快速开始: "README-get-start.md"
+  - CLI 命令: "README-cli.md"
+  - 配置说明: "README-config.md"
+  - 开发文档: "README-develop.md"
+  - API 参考: "api.md"

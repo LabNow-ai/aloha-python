@@ -1,3 +1,5 @@
+"""SQLite connection helpers."""
+
 __all__ = ("SqliteOperator",)
 
 import sqlite3
@@ -10,7 +12,10 @@ from .base import PasswordVault
 
 
 class SqliteOperator:
+    """Create and use a SQLAlchemy-backed SQLite connection."""
+
     def __init__(self, db_config, **kwargs):
+        """Build a SQLite or SQLCipher engine from the provided config."""
         self._connection_pattern = "sqlite://{dbname}"
         dbname = db_config.get("dbname", "")
         if len(dbname) > 0:
@@ -42,10 +47,12 @@ class SqliteOperator:
         return self.db
 
     def execute_query(self, sql, *args, **kwargs):
+        """Execute a SQL statement and return the cursor result."""
         with self.db.connect() as conn:
             cur = conn.execute(text(sql), *args, **kwargs)
             return cur
 
     @property
     def connection_str(self) -> str:
+        """Return the SQLAlchemy connection URL used by the engine."""
         return self._connection_pattern.format(**self._config)

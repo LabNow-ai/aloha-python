@@ -1,3 +1,5 @@
+"""Service application bootstrap utilities."""
+
 __all__ = ('Application',)
 
 import asyncio
@@ -21,32 +23,16 @@ from .web import WebApplication
 
 
 class Application:
-    """
-    Main application class for aloha service.
-    
-    Wraps a WebApplication and manages the event loop lifecycle.
-    Tries to use uvloop if available for better performance.
-    """
+    """Bootstrap and run an aloha web service."""
+
     def __init__(self, *args, **kwargs):
-        """
-        Initialize the application.
-        
-        :param args: Additional arguments
-        :param kwargs: Additional keyword arguments
-        """
+        """Create the service application wrapper."""
         options['log_file_prefix'] = 'access.log'
         settings = dict(SETTINGS.config)
         self.web_app = WebApplication(settings)
 
     def start(self):
-        """
-        Start the application and run the event loop.
-        
-        Starts the web application and enters the event loop.
-        The event loop must not be running before calling this method.
-        
-        :raises RuntimeError: If event loop is already running
-        """
+        """Start the web app and run the asyncio event loop."""
         try:
             self.web_app.start()
             event_loop = asyncio.get_event_loop()
@@ -64,9 +50,7 @@ class Application:
             pass
 
     def stop(self):
-        """
-        Stop the application and event loop.
-        """
+        """Stop the event loop if it is currently running."""
         event_loop = asyncio.get_event_loop()
         if event_loop.is_running():
             event_loop.stop()

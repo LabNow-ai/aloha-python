@@ -1,3 +1,10 @@
+"""Version 2 token-based JSON API helpers.
+
+Version 2 uses an access token in the request header and a request-id header
+for tracing. It keeps the same request/response shape as the earlier API
+generations while adding header-based authentication.
+"""
+
 __all__ = ('APIHandler', 'APICaller',)
 
 import json
@@ -12,7 +19,10 @@ from ...settings import SETTINGS
 
 
 class APIHandler(AbstractApiHandler, ABC):
+    """Token-authenticated API handler for v2 endpoints."""
+
     async def prepare(self, ) -> Optional[Awaitable[None]]:
+        """Validate the access token before handling the request."""
         access_token = self.request.headers.get('Access-Token')
         if access_token is None:
             return self.finish({
@@ -34,6 +44,7 @@ class APIHandler(AbstractApiHandler, ABC):
         self.set_header('Request-ID', self.request_id)
 
     async def post(self, *args, **kwargs):
+        """Handle POST requests with JSON request bodies."""
         body_arguments = self.request_body
         kwargs.update(body_arguments)
         try:
@@ -52,6 +63,7 @@ class APIHandler(AbstractApiHandler, ABC):
         return self.finish(resp)
 
     async def get(self, *args, **kwargs):
+        """Handle GET requests with query-string arguments."""
         query_arguments = self.request_param
         kwargs.update(query_arguments)
         try:
@@ -69,14 +81,18 @@ class APIHandler(AbstractApiHandler, ABC):
 
 
 class APICaller(AbstractApiClient):
+    """Client helper that adds v2 access-token headers automatically."""
+
     APP_ID_KEYS = AbstractApiClient.config.get('APP_ID_KEYS', {})
     APP_SECRET_KEY = AbstractApiClient.config.get('APP_SECRET_KEY')
 
     def wrap_request_data(self, data: dict) -> dict:
+        """Return the request body unchanged."""
         assert isinstance(data, dict), "Data object must be a dict!"
         return data
 
     def get_headers(self, app_id: str = None, app_key: str = None) -> dict:
+        """Build the HTTP headers expected by v2 handlers."""
         if app_id is None:
             # if len(APP_ID_KEYS) != 1:
             #     raise RuntimeError('Please specify 1 and only 1 in APP_ID_KEYS in configurations!')

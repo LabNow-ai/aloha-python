@@ -1,3 +1,5 @@
+"""Random helper aliases built on top of `secrets.SystemRandom`."""
+
 __all__ = (
     "random",
     "random_bool",
@@ -15,6 +17,7 @@ random = SystemRandom()
 
 
 def random_bool():
+    """Return a random boolean value."""
     return random.choice([True, False])
 
 

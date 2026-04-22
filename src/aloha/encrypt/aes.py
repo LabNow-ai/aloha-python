@@ -1,3 +1,5 @@
+"""AES encrypt/decrypt helpers."""
+
 import base64
 import binascii
 from typing import Callable, Optional, Union
@@ -15,6 +17,7 @@ _AES_CIPHER_METHODS = {  # FULL_CIPHER_NAME: (dict_params, pad_style)
 
 
 def _generate_key(key_size: int, method="const") -> bytes:
+    """Generate an AES key using a deterministic or random strategy."""
     if method == "const":
         return b"0" * key_size  # b'b6046801716aec00'
     elif method == "random":
@@ -23,9 +26,12 @@ def _generate_key(key_size: int, method="const") -> bytes:
 
 
 class AesEncryptor:
+    """Encrypt and decrypt strings with a selectable AES cipher profile."""
+
     supported_cipher_methods = _AES_CIPHER_METHODS
 
     def __init__(self, key: Union[str, bytes] = None, key_size: int = 16, cipher_name: str = "AES/ECB/PKCS5Padding"):
+        """Initialize the AES key and cipher settings."""
         _key = key
         if key is None:
             _key = _generate_key(key_size)
@@ -44,6 +50,7 @@ class AesEncryptor:
         self.cipher_name = cipher_name
 
     def encrypt(self, text: str, output_format="hex", func_pad: Optional[Callable] = None) -> Union[str, bytes]:
+        """Encrypt a UTF-8 string and return hex, base64, or raw bytes."""
         dict_params, pad_style = _AES_CIPHER_METHODS.get(self.cipher_name)
         if not callable(func_pad):
 
@@ -71,6 +78,7 @@ class AesEncryptor:
     def decrypt(
         self, text: Union[str, bytes], input_format: str = "hex", func_unpad: Optional[Callable] = None
     ) -> Union[str, bytes]:
+        """Decrypt ciphertext produced by :meth:`encrypt`."""
         text += (len(text) % 4) * "="
         if input_format == "hex":
             crypt = binascii.a2b_hex(text)
@@ -94,6 +102,7 @@ class AesEncryptor:
 
 
 def main():
+    """Small self-test for the AES helper."""
     a = AesEncryptor()
     src = "hello~"
     enc = a.encrypt(src, output_format="base64")

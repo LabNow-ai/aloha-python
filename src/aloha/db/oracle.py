@@ -1,3 +1,5 @@
+"""Oracle DB connection helpers."""
+
 __all__ = ("OracledbOperator",)
 
 import oracledb
@@ -11,7 +13,10 @@ LOG.debug("oracledb version = %s" % oracledb.__version__)
 
 
 class OracledbOperator:
+    """Create and use a SQLAlchemy-backed Oracle connection."""
+
     def __init__(self, db_config, **kwargs):
+        """Build an Oracle connection pool from the provided config."""
         """example of db_config:
         {
             "host": "192.168.1.100",
@@ -73,10 +78,12 @@ class OracledbOperator:
         return self.engine
 
     def execute_query(self, sql, *args, **kwargs):
+        """Execute a SQL statement and return the cursor result."""
         with self.engine.connect() as conn:
             cur = conn.execute(text(sql), *args, **kwargs)
             return cur
 
     @property
     def connection_str(self) -> str:
+        """Return a human-readable connection string."""
         return "oracle://{user}@{host}:{port}".format(**self._config)

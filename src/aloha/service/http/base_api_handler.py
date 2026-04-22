@@ -1,3 +1,5 @@
+"""Base Tornado handlers used by aloha services."""
+
 import json
 from abc import ABC
 from datetime import datetime
@@ -9,17 +11,21 @@ from ...logger import LOG
 
 
 class AbstractApiHandler(web.RequestHandler, ABC):
+    """Shared request parsing and response helpers for JSON APIs."""
+
     LOG = LOG
     MAP_ERROR_INFO: dict = {
         'BAD_REQUEST': {'code': '5101', 'message': ['Bad request: fail to parse body as JSON object!']}
     }
 
     def __init__(self, *args, **kwargs):
+        """Initialize request state used by subclasses."""
         self.api_args: Optional[tuple] = None
         self.api_kwargs: Optional[dict] = None
         super().__init__(*args, **kwargs)
 
     def on_finish(self) -> None:
+        """Invoke any stored callback after the request finishes."""
         func_callback = getattr(self, 'callback', None)
         if callable(func_callback) \
                 and isinstance(self.api_args, tuple) \
@@ -27,26 +33,32 @@ class AbstractApiHandler(web.RequestHandler, ABC):
             func_callback(*self.api_args, **self.api_kwargs)
 
     def response(self, *args, **kwargs) -> dict:
+        """Subclasses must implement the business response."""
         raise NotImplementedError()
 
     def set_default_headers(self) -> None:
+        """Set the JSON content type for API responses."""
         self.set_header('Content-Type', 'application/json; charset=utf-8')
 
     def data_received(self, chunk: bytes) -> Optional[Awaitable[None]]:
+        """Accept streaming request bodies when Tornado calls back."""
         pass
 
     @property
     def request_header_content_type(self) -> str:
+        """Return the request content type with a JSON default."""
         return self.request.headers.get('Content-Type', 'application/json; charset=utf-8')
 
     @property
     def request_id(self):
+        """Return or create a request identifier for tracing."""
         if 'Request-ID' not in self.request.headers:
             self.request.headers['Request-ID'] = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
         return self.request.headers.get('Request-ID')
 
     @property
     def request_body(self) -> dict:
+        """Parse the request body as JSON or multipart form data."""
         content_type: str = self.request_header_content_type
         body_arguments: dict = Optional[None]
 
@@ -62,6 +74,7 @@ class AbstractApiHandler(web.RequestHandler, ABC):
 
     @property
     def request_param(self) -> dict:
+        """Parse query/body arguments into a JSON-friendly dict."""
         ret: dict = {}
         for k, v in self.request.arguments.items():
             val = v[0].decode('utf-8')
@@ -75,10 +88,14 @@ class AbstractApiHandler(web.RequestHandler, ABC):
 
 
 class DefaultHandler404(AbstractApiHandler):
+    """Default JSON 404 handler used by aloha services."""
+
     def response(self, *args, **kwargs) -> Optional[dict]:
+        """Return the default 404 response payload."""
         return self.prepare()
 
     def prepare(self):  # for all methods
+        """Finalize the 404 response."""
         msg = {
             "code": 404,
             "status": "error",

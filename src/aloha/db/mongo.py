@@ -1,3 +1,5 @@
+"""MongoDB connection helpers."""
+
 __all__ = ("MongoOperator",)
 
 import ipaddress
@@ -21,6 +23,7 @@ _conn = {}
 
 
 def MongoOperator(config):
+    """Return a cached MongoDB operation wrapper for the given config."""
     db_name = config.get("db_name")
     collection_name = config.get("collection_name")
 
@@ -37,7 +40,10 @@ def MongoOperator(config):
 
 
 class _MongoDBOperation:
+    """MongoDB collection helper built on top of pymongo."""
+
     def __init__(self, config, db_name=None, collection_name=None):
+        """Create a MongoClient and optionally bind a default collection."""
         self.db_name, self.collection_name = db_name, collection_name
 
         host = config["host"]
@@ -74,6 +80,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def set_collection(self, collection_name):
+        """Switch the active collection after verifying it exists."""
         if collection_name not in self.db.list_collection_names():
             raise Exception("Collection[%s] does not exist in [%s]" % (self.collection_name, self.db_name))
         self.collection_name = collection_name
@@ -81,15 +88,7 @@ class _MongoDBOperation:
         return True
 
     def check_and_get_collection(self, collection_name=None, raise_if_not_exists=True):
-        """
-        检查collection是否存在，如果存在则返回collection对象，否则抛出异常
-        Args:
-            @param collection_name: str或unicode    collection名称
-        Returns:
-            @return: collection对象
-        Raises:
-            @raise Exception: 如果collection在对应db中不存在，则
-        """
+        """Return the active collection, switching it when requested."""
         self.db = self.conn[self.db_name]
 
         if self.collection_name is not None:
@@ -108,6 +107,7 @@ class _MongoDBOperation:
         return self.collection
 
     def insert(self, doc_or_docs, check_keys=False, collection_name=None):
+        """Insert a single document or a list of documents."""
         try:
             collection = self.check_and_get_collection(collection_name)
             return collection.insert(doc_or_docs, check_keys=check_keys)
@@ -115,6 +115,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def insert_many(self, docs, collection_name=None):
+        """Insert many documents at once."""
         try:
             collection = self.check_and_get_collection(collection_name)
             return collection.insert_many(docs)
@@ -122,6 +123,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def insert_one(self, doc, collection_name=None):
+        """Insert one document."""
         try:
             collection = self.check_and_get_collection(collection_name)
             return collection.insert_one(doc)
@@ -129,6 +131,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def delete_many(self, field_filter, collection_name=None):
+        """Delete all documents matching the filter."""
         try:
             collection = self.check_and_get_collection(collection_name)
             return collection.delete_many(filter=field_filter)
@@ -136,6 +139,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def delete_one(self, field_filter, collection_name=None):
+        """Delete one document matching the filter."""
         try:
             collection = self.check_and_get_collection(collection_name)
             return collection.delete_one(filter=field_filter)
@@ -153,6 +157,7 @@ class _MongoDBOperation:
         session=None,
         collection_name=None,
     ):
+        """Update one document and return whether the update succeeded."""
         try:
             collection = self.check_and_get_collection(collection_name)
             collection.update_one(
@@ -180,6 +185,7 @@ class _MongoDBOperation:
         session=None,
         collection_name=None,
     ):
+        """Update many documents matching the filter."""
         try:
             collection = self.check_and_get_collection(collection_name)
             return collection.update_many(
@@ -195,17 +201,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def query(self, field_filter=None, sort=None, limit=40, skip=0, collection_name=None):
-        """
-        从mongo查询数据
-        Args:
-            @param field_filter: dict     根据mongo查询语法构造查询条件
-            @param sort: array      排序条件，例如：[("company_name",pymongo.ASCENDING), ("_id",pymongo.ASCENDING)]
-            @param limit: int       查询条数
-            @param skip: int        controls the starting point of the results set
-            @param collection_name: str    collection名称，在建立完连接后可动态更换要查询的collection
-        Returns:
-            @return: 返回查询结果的游标对象
-        """
+        """Query documents with optional sorting, limit, and skip."""
         try:
             collection = self.check_and_get_collection(collection_name)
             if sort:
@@ -217,13 +213,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def find_many(self, field_filter=None, projection=None, collection_name=None, *args, **kwargs):
-        """
-        从mongo查询数据，返回所有返回数据的游标
-        Args:
-            @param field_filter: dict     根据mongo查询语法构造查询条件
-            @param projection: dict     限制返回的字段 exmaple: { name: 1, contribs: 1, _id: 0 }
-            @param collection_name: str    collection名称，在建立完连接后可动态更换要查询的collection
-        """
+        """Return a cursor for a MongoDB query."""
         try:
             collection = self.check_and_get_collection(collection_name)
             result = collection.find(field_filter or {}, projection, *args, **kwargs)
@@ -232,13 +222,7 @@ class _MongoDBOperation:
             LOG.exception(e)
 
     def find_one(self, field_filter=None, projection=None, collection_name=None, *args, **kwargs):
-        """
-        从mongo查询数据,只返回单个结果
-        Args:
-            @param field_filter: dict     根据mongo查询语法构造查询条件
-            @param projection: dict     限制返回的字段 exmaple: { name: 1, contribs: 1, _id: 0 }
-            @param collection_name: str    collection名称，在建立完连接后可动态更换要查询的collection
-        """
+        """Return a single matching MongoDB document."""
         try:
             collection = self.check_and_get_collection(collection_name)
             result = collection.find_one(field_filter or {}, projection, *args, **kwargs)

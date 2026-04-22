@@ -1,3 +1,5 @@
+"""Tornado web application assembly for aloha services."""
+
 import logging
 import os
 
@@ -16,7 +18,7 @@ setup_logger(
 
 
 def _load_handlers(name):
-    """Load the (URL pattern, handler) tuples for each component."""
+    """Load `(URL pattern, handler)` tuples from a service module."""
     mod = __import__(name, fromlist=["default_handlers"])
     handlers = []
     for url, handler in mod.default_handlers:
@@ -27,13 +29,17 @@ def _load_handlers(name):
 
 
 class WebApplication(web.Application):
+    """Tornado application that loads handlers from configured service modules."""
+
     def __init__(self, config: dict, *args, **kwargs):
+        """Create the application and its HTTP server."""
         handlers = self.init_handlers(config)
         super().__init__(handlers=handlers, **config)
         self.http_server = httpserver.HTTPServer(self)
 
     @staticmethod
     def init_handlers(config: dict):
+        """Collect and normalize all handlers from configured service modules."""
         settings = config.get("service", {})
         modules = settings.get("modules", [])
         handlers = []
@@ -50,6 +56,7 @@ class WebApplication(web.Application):
         return [(HostMatches("(.*)"), handlers)]
 
     def start(self):
+        """Bind the configured port and start the HTTP server."""
         service_settings = self.settings.get("service", {})
 
         port = service_settings.get("port") or int(os.environ.get("PORT_SVC", 80))

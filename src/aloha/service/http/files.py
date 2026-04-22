@@ -1,3 +1,5 @@
+"""Helpers for handling multipart upload files and remote file inputs."""
+
 import time
 
 import requests
@@ -6,6 +8,12 @@ from ...logger import LOG
 
 
 def iter_over_request_files(request, url_files):
+    """Yield uploaded files and optional remote files as normalized tuples.
+
+    Each yielded item is `(field_name, file_name, content_type, body_bytes)`.
+    Files can come from multipart form uploads or from URLs listed in
+    `url_files`.
+    """
     for file_key, files in request.files.items():  # iter over files uploaded by multipart
         for f in files:
             file_name, content_type = f["filename"], f["content_type"]

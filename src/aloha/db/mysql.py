@@ -1,3 +1,5 @@
+"""MySQL connection helpers."""
+
 __all__ = ("MySqlOperator",)
 
 import pymysql
@@ -11,7 +13,10 @@ LOG.debug("Version of pymysql = %s" % pymysql.__version__)
 
 
 class MySqlOperator:
+    """Create and use a SQLAlchemy-backed MySQL connection."""
+
     def __init__(self, db_config, **kwargs):
+        """Build a connection pool from the provided database config."""
         password_vault = PasswordVault.get_vault(db_config.get("vault_type"), db_config.get("vault_config"))
         self._config = {
             "host": db_config["host"],
@@ -39,10 +44,12 @@ class MySqlOperator:
         return self.db
 
     def execute_query(self, sql, *args, **kwargs):
+        """Execute a SQL statement and return the cursor result."""
         with self.db.connect() as conn:
             cur = conn.execute(text(sql), *args, **kwargs)
             return cur
 
     @property
     def connection_str(self) -> str:
+        """Return a human-readable connection string."""
         return "mysql://{user}:{password}@{host}:{port}/{dbname}".format(**self._config)

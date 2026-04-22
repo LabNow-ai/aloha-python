@@ -1,3 +1,5 @@
+"""Elasticsearch connection helpers."""
+
 __all__ = ("ElasticSearchOperator",)
 
 import json
@@ -9,7 +11,10 @@ from .base import PasswordVault
 
 
 class ElasticSearchOperator:
+    """Create and use an Elasticsearch client with optional index helpers."""
+
     def __init__(self, config, index_config=None):
+        """Build the client and optionally load the index configuration."""
         self.es_config = config
 
         password_vault = PasswordVault.get_vault(config.get("vault_type"), config.get("vault_config"))
@@ -36,6 +41,7 @@ class ElasticSearchOperator:
 
     @staticmethod
     def _load_config(config):
+        """Load an index configuration from a dict or JSON file."""
         if isinstance(config, dict):
             return config
 
@@ -48,6 +54,7 @@ class ElasticSearchOperator:
             raise ValueError("Invalid ES config data type")
 
     def put_mapping(self, index_name=None, index_type=None, index_config: dict | None = None):
+        """Apply a mapping definition to the current index."""
         return self.es.indices.put_mapping(
             index=index_name or self.index_name,
             doc_type=index_type or self.index_type,
@@ -55,6 +62,7 @@ class ElasticSearchOperator:
         )
 
     def build_index(self, index_name=None, index_config=None, raise_if_exist=False):
+        """Create the index if it does not already exist."""
         if self.es.indices.exists(index=index_name or self.index_name) is not True:
             res = self.es.indices.create(index=index_name or self.index_name, body=index_config or self.index_config)
             return res
@@ -67,10 +75,13 @@ class ElasticSearchOperator:
                 return False
 
     def search(self, query, index_name=None, index_type=None):
+        """Execute a search query."""
         return self.es.search(index=index_name or self.index_name, doc_type=index_type or self.index_type, body=query)
 
     def msearch(self, body):
+        """Execute a multi-search request."""
         return self.es.msearch(body=body)
 
     def insert(self, doc, index_name=None, index_type=None, id=None):
+        """Insert or replace a document."""
         return self.es.index(index=index_name or self.index_name, doc_type=index_type or self.index_type, id=id, body=doc)

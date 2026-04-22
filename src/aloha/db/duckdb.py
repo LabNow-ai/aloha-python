@@ -1,3 +1,5 @@
+"""DuckDB connection helpers."""
+
 __all__ = ("DuckOperator",)
 
 from pathlib import Path
@@ -12,7 +14,10 @@ LOG.debug("duckdb version = %s, duckdb_engine = %s " % (duckdb.__version__, duck
 
 
 class DuckOperator:
+    """Create and use a DuckDB connection through SQLAlchemy."""
+
     def __init__(self, db_config, **kwargs):
+        """Build a DuckDB engine, creating the database file if necessary."""
         """db_config example:
         {
             "path": "/path/to/db.duckdb",     # file path of duckdb, use ":memory:" for in-memory mode
@@ -79,6 +84,7 @@ class DuckOperator:
                 raise RuntimeError(f"Failed to create database file '{path}': {e}")
 
     def _initialize_schema(self):
+        """Create or select the requested schema."""
         if self._config["schema"] == "main":
             return
 
@@ -104,6 +110,7 @@ class DuckOperator:
     conn = connection
 
     def execute_query(self, sql, *args, **kwargs):
+        """Execute a SQL statement and return the cursor result."""
         with self.engine.connect() as conn:
             cur = conn.execute(text(sql), *args, *kwargs)
             if self._config.get("auto_commit", True):
@@ -112,4 +119,5 @@ class DuckOperator:
 
     @property
     def connection_str(self) -> str:
+        """Return a human-readable connection string."""
         return f"duckdb:///{self._config['path']} [schema={self._config['schema']}, read_only={self._config['read_only']}]"

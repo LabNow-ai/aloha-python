@@ -1,3 +1,9 @@
+"""Version 1 signed JSON API helpers.
+
+Version 1 adds request signing with `app_id`, `salt_uuid`, and `sign` fields.
+Handlers validate the signature before dispatching to the service logic.
+"""
+
 __all__ = ("APIHandler", "APICaller", "sign_data", "sign_check")
 
 import json
@@ -16,6 +22,8 @@ func_sign_check_default = FUNC_SIGN_CHECK.get(APP_OPTIONS.get("sign_method", "md
 
 
 class APIHandler(AbstractApiHandler, ABC):
+    """Signed API handler for v1 endpoints."""
+
     MAP_ERROR_INFO = {
         "BAD_REQUEST": {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]},
         "MISSING_ARGS": {"code": "5102", "message": ["Required argument field(s) missing..."]},
@@ -23,6 +31,7 @@ class APIHandler(AbstractApiHandler, ABC):
     }
 
     async def post(self):
+        """Validate the signature and dispatch the wrapped payload."""
         body_arguments = self.request_body
 
         try:
@@ -52,11 +61,20 @@ class APIHandler(AbstractApiHandler, ABC):
 
 
 class APICaller(AbstractApiClient):
+    """Client helper that wraps payloads with v1 signing metadata."""
+
     APP_ID_KEYS = AbstractApiClient.config.get("APP_ID_KEYS", {})
 
     def wrap_request_data(
-        self, data, app_id: str = None, app_key: str = None, salt_uuid: str = None, sign: str = None, sign_method: str = None
+        self,
+        data,
+        app_id: str | None = None,
+        app_key: str | None = None,
+        salt_uuid: str | None = None,
+        sign: str | None = None,
+        sign_method: str | None = None,
     ):
+        """Wrap the payload with signature fields expected by v1 handlers."""
         if app_id is None:
             # if len(APP_ID_KEYS) != 1:
             #     raise RuntimeError('Please specify 1 and only 1 in APP_ID_KEYS in configurations!')
@@ -73,6 +91,10 @@ class APICaller(AbstractApiClient):
 
 
 def sign_data(salt_uuid: str, app_id: str, app_key: str, data, sign_method: str = None):
+    """Generate the v1 signature for a payload.
+
+    The signature is based on `app_id + salt_uuid + data + app_key`.
+    """
     data_str = str(json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
     public_key = app_id + salt_uuid + data_str + app_key
 
@@ -84,15 +106,7 @@ def sign_data(salt_uuid: str, app_id: str, app_key: str, data, sign_method: str 
 
 
 def sign_check(salt_uuid: str, app_id: str, sign: str, data, sign_method: str = None, date_time=None):
-    """Sign Validation
-    :param salt_uuid: Universal Unified ID for 1) Signature, 2) Log tracing
-    :param app_id: APP ID
-    :param sign: sing = hash(app_id + salt_uuid + data + app_key)
-    :param data: data object, will be serialized to JSON string
-    :param date_time: not used for now
-    :param sign_method: Sign method, one of the following: md5, sha256
-    :return: If the signature passed validation
-    """
+    """Validate a v1 request signature."""
 
     func_sign_check = func_sign_check_default if sign_method is None else FUNC_SIGN_CHECK.get(sign_method)
     if func_sign_check is None:

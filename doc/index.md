@@ -2,20 +2,15 @@
 
 Aloha! Thanks for your interesting in this python package.
 
-[![License](https://img.shields.io/github/license/QPod/aloha-python)](https://github.com/QPod/aloha-python/blob/main/LICENSE)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/QPod/aloha-python/build.yml?branch=main)](https://github.com/QPod/aloha-python/actions)
-[![Join the Gitter Chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/QPod/)
+[![License](https://img.shields.io/github/license/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/blob/main/LICENSE)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/LabNow-ai/aloha-python/build.yml?branch=main)](https://github.com/LabNow-ai/aloha-python/actions)
+[![Join the Gitter Chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/LabNow-ai/)
 [![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.python.org/pypi/aloha/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/aloha)](https://pepy.tech/badge/aloha/)
-[![Code Activity](https://img.shields.io/github/commit-activity/m/QPod/aloha-python)](https://github.com/QPod/aloha-python/pulse)
-[![Recent Code Update](https://img.shields.io/github/last-commit/QPod/docker-images.svg)](https://github.com/QPod/aloha-python/stargazers)
+[![Code Activity](https://img.shields.io/github/commit-activity/m/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/pulse)
+[![Recent Code Update](https://img.shields.io/github/last-commit/LabNow-ai/docker-images.svg)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
-Please generously STAR★ our project or donate to us! [![GitHub Starts](https://img.shields.io/github/stars/QPod/aloha-python.svg?label=Stars&style=social)](https://github.com/QPod/aloha-python/stargazers)
-[![Donate-PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/haobibo)
-[![Donate-AliPay](https://img.shields.io/badge/Donate-Alipay-blue.svg)](https://raw.githubusercontent.com/wiki/haobibo/resources/img/Donate-AliPay.png)
-[![Donate-WeChat](https://img.shields.io/badge/Donate-WeChat-green.svg)](https://raw.githubusercontent.com/wiki/haobibo/resources/img/Donate-WeChat.png)
-
-## What is it?
+Please generously STAR★ our project or donate to us! [![GitHub Starts](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
 The python package `aloha` is a cute and versatile to build python microservices.
 The package encapsulates commonly used components and features, such as:

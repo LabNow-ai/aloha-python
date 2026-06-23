@@ -23,6 +23,6 @@ python:
   install:
     - requirements: ./doc/requirements.txt
     - method: pip
-      path: ./src
+      path: ./pkg
       extra_requirements:
         - all

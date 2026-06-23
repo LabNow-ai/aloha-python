@@ -56,21 +56,18 @@ jobs:
       - name: pip-install-test
         run: |
           sudo pip3 install -UI pip && sudo pip3 install -UI build setuptools wheel twine pyOpenSSL
-          cd pkg
-          sudo python3 -m build
-          pip3 install ./dist/*.tar.gz
-          aloha info
-          pip3 list | sort
+          cp ./README.md ./pkg/
+          cd pkg && sudo python3 -m build & pip3 install ./dist/*.tar.gz
+          pip3 list | grep aloha && aloha info
 
       - name: pypi-publish
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
           TWINE_PASSWORD_TEST: ${{ secrets.TWINE_PASSWORD_TEST }}
         run: |
-          env | sort -f && cd pkg && ls -alh
+          env | sort -f && cp ./README.md ./pkg/ && cd pkg && ls -alh
           sudo python3 -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
-          sudo python3 -m build
-          ls -alh ./dist
+          sudo python3 -m build && ls -alh ./dist
 
           if [ "${GITHUB_REPOSITORY}" = "LabNow-ai/aloha-python" ] && [ "${GITHUB_REF_NAME}" = "main" ] ; then
             URL_REPOSITORY="https://upload.pypi.org/legacy/" ; P=${TWINE_PASSWORD} ;

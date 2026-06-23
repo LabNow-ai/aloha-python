@@ -18,8 +18,7 @@ COPY . /tmp/app
 RUN set -ex && cd /tmp/app && mkdir -pv ${DIR_APP} \
  && source /opt/utils/script-localize.sh ${PROFILE_LOCALIZE} \
  && if [[ "$ENABLE_CODE_BUILD" = "true" ]] ; then \
-      echo "-> Building src to binary..." && pip install -U aloha[build] && \
-      aloha compile --base=./src --dist=${DIR_APP}/ ; \
+      echo "-> Building src to binary..." && pip install -U aloha[build] && aloha compile --base=./src --dist=${DIR_APP}/ ; \
     else \
       echo "-> Not building src code!" && mv src/* ${DIR_APP} ; \
     fi \

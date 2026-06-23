@@ -21,5 +21,10 @@ services:
     ports: [ "${PORT_APP:-9000}:9000", "${PORT_WEB:-3000}:3000" ]
     volumes:
       - ../../:/root/app:rw
+      # AI4Coding tools:
+      - "$HOME/.claude:/root/.claude:rw"
+      - "$HOME/.codex:/root/.codex:rw"
+      - "$HOME/.copilot:/root/.copilot:rw"
+      - "$HOME/.gemini:/root/.gemini:rw"
     working_dir: /root/app
     command: "tail -f /dev/null"

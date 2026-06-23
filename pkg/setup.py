@@ -13,7 +13,7 @@ with open("./aloha/_version.py", "wt") as fp:
 
 dict_extra_requires = {
     "build": ["Cython"],
-    "service": ["requests", "tornado", "psutil", "pyjwt", "fastapi", "httpx"],
+    "service": ["psutil", "pyjwt", "fastapi", "httpx", "uvicorn"],
     "db": [
         "sqlalchemy",
         "psycopg[binary]",

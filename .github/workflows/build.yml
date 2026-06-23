@@ -57,7 +57,7 @@ jobs:
         run: |
           sudo pip3 install -UI pip && sudo pip3 install -UI build setuptools wheel twine pyOpenSSL
           cp ./README.md ./pkg/
-          cd pkg && sudo python3 -m build & pip3 install ./dist/*.tar.gz
+          cd pkg && sudo python3 -m build && pip3 install ./dist/*.tar.gz
           pip3 list | grep aloha && aloha info
 
       - name: pypi-publish

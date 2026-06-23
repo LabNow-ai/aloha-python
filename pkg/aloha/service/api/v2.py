@@ -1,4 +1,4 @@
-"""Version 2 token-based JSON API helpers.
+"""Version 2 token-based JSON API helpers for FastAPI.
 
 Version 2 uses an access token in the request header and a request-id header
 for tracing. It keeps the same request/response shape as the earlier API
@@ -9,37 +9,37 @@ import json
 import logging
 from abc import ABC
 from datetime import datetime, timedelta
-from typing import Awaitable, Optional
+from typing import Optional, Dict, Any
+
+from fastapi import Request, Response, Depends
+from fastapi.responses import JSONResponse
 
 from ...encrypt import jwt
 from ...settings import SETTINGS
-from ..http import AbstractApiClient, AbstractApiHandler
+from ..http import AbstractApiClient
+from ..http.base_api_handler import AbstractApiHandler as BaseHandler
 
-__all__ = ("APIHandler", "APICaller")
+__all__ = ("APIHandler", "APICaller", "create_v2_router", "verify_v2_token")
 
 
-class APIHandler(AbstractApiHandler, ABC):
+class APIHandler(BaseHandler, ABC):
     """Token-authenticated API handler for v2 endpoints."""
 
-    async def prepare(
-        self,
-    ) -> Optional[Awaitable[None]]:
+    async def prepare(self) -> Optional[Response]:
         """Validate the access token before handling the request."""
-        access_token = self.request.headers.get("Access-Token")
+        access_token = self._request.headers.get("Access-Token")
         if access_token is None:
             return self.finish({"msg": "Invalid Access-Token in request header!"})
         else:
             secret_key = SETTINGS.config["APP_SECRET_KEY"]
-            # options = None
-            # TODO: if not validate expiration
             options = {"verify_exp": False}
             access_token = jwt.decode(secret_key, access_token, options=options)
             if not isinstance(access_token, dict):
                 self.LOG.error(
-                    "Invalid Access-Token found in request for [%s]: %s" % (str(self.request.full_url()), access_token)
+                    "Invalid Access-Token found in request for [%s]: %s" % (str(self._request.url), access_token)
                 )
                 return self.finish({"msg": access_token})
-        self.set_header("Request-ID", self.request_id)
+        return None
 
     async def post(self, *args, **kwargs):
         """Handle POST requests with JSON request bodies."""
@@ -50,14 +50,12 @@ class APIHandler(AbstractApiHandler, ABC):
                 s_kwargs = json.dumps(kwargs, ensure_ascii=False)
                 self.LOG.debug("POST Request [%s]: %s" % (self.request_id, s_kwargs[:1000]))
             self.api_args, self.api_kwargs = args or (), kwargs or {}
-            resp = self.response(*self.api_args, **self.api_kwargs)  # this call may throw TypeError when argument missing
+            resp = self.response(*self.api_args, **self.api_kwargs)
         except Exception as e:
             self.LOG.error(e, exc_info=True)
-            self.LOG.info("POST Request [%s]: %s" % (self.request_id, self.request.body))
+            self.LOG.info("POST Request [%s]: %s" % (self.request_id, self._request._body))
             return self.finish({"status": "error", "message": [str(e)]})
 
-        if isinstance(resp, (dict, list)):
-            resp = json.dumps(resp, ensure_ascii=False, default=str, separators=(",", ":"))
         return self.finish(resp)
 
     async def get(self, *args, **kwargs):
@@ -67,15 +65,98 @@ class APIHandler(AbstractApiHandler, ABC):
         try:
             self.LOG.debug("GET Request [%s]: %s" % (self.request_id, kwargs))
             self.api_args, self.api_kwargs = args or (), kwargs or {}
-            resp = self.response(*self.api_args, **self.api_kwargs)  # this call may throw TypeError when argument missing
+            resp = self.response(*self.api_args, **self.api_kwargs)
         except Exception as e:
             self.LOG.error(e, exc_info=True)
             self.LOG.info("GET Request [%s]: %s" % (self.request_id, kwargs))
             return self.finish({"status": "error", "message": [repr(e)]})
 
-        if isinstance(resp, (dict, list)):
-            resp = json.dumps(resp, ensure_ascii=False, default=str, separators=(",", ":"))
         return self.finish(resp)
+
+
+def verify_v2_token(request: Request) -> Optional[Dict[str, Any]]:
+    """Dependency to verify v2 access token.
+    
+    Returns the decoded token payload if valid, otherwise raises HTTPException.
+    """
+    from fastapi import HTTPException, status
+    
+    access_token = request.headers.get("Access-Token")
+    if access_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Access-Token in request header!"
+        )
+    
+    secret_key = SETTINGS.config.get("APP_SECRET_KEY")
+    if not secret_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="APP_SECRET_KEY not configured!"
+        )
+    
+    options = {"verify_exp": False}
+    try:
+        payload = jwt.decode(secret_key, access_token, options=options)
+        if not isinstance(payload, dict):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid Access-Token!"
+            )
+        return payload
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+
+
+def create_v2_router(handler_class):
+    """Create FastAPI routes for a v2 API handler class with JWT token validation.
+    
+    Args:
+        handler_class: A class inheriting from APIHandler
+        
+    Returns:
+        Tuple of (handle_post, handle_get) functions for the routes
+    """
+    async def handle_post(request: Request, token_payload: Dict = Depends(verify_v2_token)):
+        handler = handler_class()
+        handler._request = request
+        
+        try:
+            body = await request.json()
+        except:
+            body = {}
+        
+        kwargs = body
+        try:
+            if handler.LOG.level == logging.DEBUG:
+                s_kwargs = json.dumps(kwargs, ensure_ascii=False)
+                handler.LOG.debug("POST Request [%s]: %s" % (handler.request_id, s_kwargs[:1000]))
+            
+            resp = handler.response(**kwargs)
+        except Exception as e:
+            handler.LOG.error(e, exc_info=True)
+            return JSONResponse({"status": "error", "message": [str(e)]}, status_code=500)
+        
+        return handler.finish(resp)
+    
+    async def handle_get(request: Request, token_payload: Dict = Depends(verify_v2_token)):
+        handler = handler_class()
+        handler._request = request
+        
+        kwargs = dict(request.query_params)
+        try:
+            handler.LOG.debug("GET Request [%s]: %s" % (handler.request_id, kwargs))
+            resp = handler.response(**kwargs)
+        except Exception as e:
+            handler.LOG.error(e, exc_info=True)
+            return JSONResponse({"status": "error", "message": [repr(e)]}, status_code=500)
+        
+        return handler.finish(resp)
+    
+    return handle_post, handle_get
 
 
 class APICaller(AbstractApiClient):
@@ -92,8 +173,6 @@ class APICaller(AbstractApiClient):
     def get_headers(self, app_id: str = None, app_key: str = None) -> dict:
         """Build the HTTP headers expected by v2 handlers."""
         if app_id is None:
-            # if len(APP_ID_KEYS) != 1:
-            #     raise RuntimeError('Please specify 1 and only 1 in APP_ID_KEYS in configurations!')
             app_id = list(self.APP_ID_KEYS.keys())[0]
 
         expire_time = datetime.now() + timedelta(days=1)

@@ -48,7 +48,17 @@ class SysStatusInfo(APIHandler):
         return self.get_sys_info(kind=kind)
 
     async def get(self, kind: str = None, *args, **kwargs):
+        # Handle path_param from URL pattern
+        if 'path_param' in kwargs:
+            # If kind is not set, try to use path_param as kind
+            if kind is None:
+                kind = kwargs.pop('path_param', None)
         data = self.get_sys_info(kind=kind)
+        return self.finish(data)
+    
+    async def post(self, *args, **kwargs):
+        # For POST, use the response method
+        data = self.response(**kwargs)
         return self.finish(data)
 
 

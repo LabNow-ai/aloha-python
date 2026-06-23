@@ -1,56 +1,67 @@
-"""Service application bootstrap utilities."""
+"""Service application bootstrap utilities for FastAPI."""
 
 import asyncio
+import logging
+import uvicorn
 
 from ..logger import LOG
 
 try:
     import uvloop
-    from tornado.platform.asyncio import AsyncIOMainLoop
-
     LOG.info("Using uvloop == %s for service event loop..." % uvloop.__version__)
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    AsyncIOMainLoop().install()
 except ImportError:
     LOG.info("[uvloop] NOT installed, fallback to asyncio loop! Consider `pip install uvloop`!")
 
-from tornado.options import options
-
 from ..settings import SETTINGS
-from .web import WebApplication
+from .web import FastAPIApplication
 
 __all__ = ("Application",)
 
 
 class Application:
-    """Bootstrap and run an aloha web service."""
+    """Bootstrap and run an aloha FastAPI web service."""
 
     def __init__(self, *args, **kwargs):
         """Create the service application wrapper."""
-        options["log_file_prefix"] = "access.log"
         settings = dict(SETTINGS.config)
-        self.web_app = WebApplication(settings)
+        self.web_app = FastAPIApplication(settings)
+        self._server = None
 
     def start(self):
-        """Start the web app and run the asyncio event loop."""
+        """Start the FastAPI app using uvicorn."""
+        port = self.web_app.get_port()
+        workers = self.web_app.get_workers()
+        
+        LOG.info("Starting FastAPI service at port [%s] with [%s] workers...", port, workers)
+        
         try:
-            self.web_app.start()
-            event_loop = asyncio.get_event_loop()
-            if event_loop.is_running():
-                # notice: the event loop MUST NOT be initialized before web_app starts (as it may fork process)
-                # ref: https://github.com/tornadoweb/tornado/issues/2426#issuecomment-400895086
-                raise RuntimeError("Event loop already running before WebApp starts!")
-            else:
-                event_loop.run_forever()
+            # Configure uvicorn
+            config = uvicorn.Config(
+                app=self.web_app.app,
+                host="0.0.0.0",
+                port=port,
+                workers=workers,
+                log_level="info",
+                access_log=True,
+            )
+            self._server = uvicorn.Server(config)
+            
+            # Run with uvloop if available
+            try:
+                import uvloop
+                asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+            except ImportError:
+                pass
+            
+            asyncio.run(self._server.serve())
         except KeyboardInterrupt:
-            pass
+            LOG.info("Service interrupted by user")
         except Exception as e:
+            LOG.error("Service error: %s", str(e))
             raise e
-        finally:
-            pass
 
     def stop(self):
-        """Stop the event loop if it is currently running."""
-        event_loop = asyncio.get_event_loop()
-        if event_loop.is_running():
-            event_loop.stop()
+        """Stop the server if it is currently running."""
+        if self._server is not None:
+            self._server.should_exit = True

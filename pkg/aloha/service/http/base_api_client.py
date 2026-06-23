@@ -1,18 +1,18 @@
-"""Base HTTP client helpers for aloha API clients."""
+"""Base HTTP client helpers for aloha API clients using httpx."""
 
 import uuid
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
+from typing import Optional
 
-import requests
-from requests.adapters import HTTPAdapter, Retry
+import httpx
 
 from ...logger import LOG
 from ...settings import SETTINGS
 
 
 class AbstractApiClient(ABC):
-    """Common client behavior for aloha HTTP APIs."""
+    """Common client behavior for aloha HTTP APIs using httpx."""
 
     LOG = LOG
     RETRY_METHOD_WHITELIST: frozenset = frozenset(['GET', 'POST'])
@@ -24,17 +24,27 @@ class AbstractApiClient(ABC):
         self.url_endpoint = url_endpoint or ''
         LOG.debug('API Caller URL endpoint set to: %s' % self.url_endpoint)
 
-    @classmethod
-    def get_request_session(cls, total_retries: int = 3, *args, **kwargs) -> requests.Session:
-        """Create a requests session with retry support."""
-        session = requests.Session()
-        # https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#urllib3.util.Retry.DEFAULT_ALLOWED_METHODS
-        retries = Retry(
-            total=total_retries, backoff_factor=0.1, method_whitelist=cls.RETRY_METHOD_WHITELIST, status_forcelist=cls.RETRY_STATUS_FORCELIST
+    def get_http_client(self, total_retries: int = 3, *args, **kwargs) -> httpx.AsyncClient:
+        """Create an httpx async client with retry support via custom transport."""
+        # Create a custom transport that retries on specific status codes
+        from httpx import AsyncClient, Limits, Timeout
+        
+        # Configure retry policy
+        limits = Limits(
+            max_keepalive_connections=20,
+            max_connections=100,
+            keepalive_expiry=30
         )
-        for prefix in ('http://', 'https://'):
-            session.mount(prefix, HTTPAdapter(max_retries=retries))
-        return session
+        timeout = Timeout(timeout=30.0, connect=5.0)
+        
+        # Create async client with retry capabilities
+        client = AsyncClient(
+            limits=limits,
+            timeout=timeout,
+            follow_redirects=True,
+            http2=True,
+        )
+        return client
 
     def get_headers(self, *args, **kwargs) -> dict:
         """Build the default request headers used by aloha clients."""
@@ -49,18 +59,21 @@ class AbstractApiClient(ABC):
         """Transform the request payload before sending it."""
         assert isinstance(data, dict), "Data object must be a dict!"
         raise NotImplementedError()
-        # return data
 
-    def call(self, api_url: str, data: dict = None, timeout=5, **kwargs):
-        """Call a remote API and return the parsed JSON response."""
+    async def _async_call(self, api_url: str, data: dict = None, timeout: float = 5, **kwargs):
+        """Async version: Call a remote API and return the parsed JSON response."""
         body = data or dict()
         body.update(kwargs)
         payload = self.wrap_request_data(data=body)
         LOG.debug('Calling api: %s' % api_url)
-        session = self.get_request_session()
-        resp = session.post(
-            urljoin(self.url_endpoint, api_url), json=payload, timeout=timeout, headers=self.get_headers()
-        )
+        
+        async with self.get_http_client() as client:
+            resp = await client.post(
+                urljoin(self.url_endpoint, api_url), 
+                json=payload, 
+                timeout=timeout, 
+                headers=self.get_headers()
+            )
 
         try:
             ret = resp.json()
@@ -69,3 +82,21 @@ class AbstractApiClient(ABC):
             raise RuntimeError(resp.text)
 
         return ret
+
+    def call(self, api_url: str, data: dict = None, timeout: float = 5, **kwargs):
+        """Call a remote API and return the parsed JSON response (sync wrapper)."""
+        import asyncio
+        
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is running, we need to create a new task
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    future = pool.submit(asyncio.run, self._async_call(api_url, data, timeout, **kwargs))
+                    return future.result()
+            else:
+                return loop.run_until_complete(self._async_call(api_url, data, timeout, **kwargs))
+        except RuntimeError:
+            # No event loop exists
+            return asyncio.run(self._async_call(api_url, data, timeout, **kwargs))

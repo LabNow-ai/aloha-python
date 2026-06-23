@@ -1,27 +1,42 @@
-"""Plain Tornado handler with permissive CORS defaults."""
+"""FastAPI middleware and dependencies with permissive CORS defaults."""
 
-from typing import Optional, Awaitable
+from typing import Optional
 
-from tornado import web
+from fastapi import Request, Response
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from ...logger import LOG
 
 
-class PlainHttpHandler(web.RequestHandler):
-    """Minimal handler that exposes JSON-friendly CORS headers."""
+class CORSResponse(JSONResponse):
+    """JSON response with permissive CORS headers for simple APIs."""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    async def __call__(self, scope, receive, send) -> None:
+        await super().__call__(scope, receive, send)
 
-    def data_received(self, chunk: bytes) -> Optional[Awaitable[None]]:
-        """Accept streamed body chunks without additional processing."""
-        pass
 
-    def set_default_headers(self):
-        """Enable permissive cross-origin access for simple APIs."""
-        self.set_header('Access-Control-Allow-Origin', '*')
-        self.set_header('Access-Control-Allow-Headers', '*')
-        self.set_header('Access-Control-Max-Age', 1000)
-        self.set_header('Content-type', 'application/json; charset=UTF-8')
-        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        self.set_header(
-            'Access-Control-Allow-Headers',
-            'authorization, Authorization, Content-Type,'
-            'Access-Control-Allow-Origin, Access-Control-Allow-Headers,'
-            'X-Requested-By, Access-Control-Allow-Methods'
-        )
+def add_cors_headers(response: Response) -> None:
+    """Add permissive CORS headers to a response."""
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = '*'
+    response.headers['Access-Control-Max-Age'] = '1000'
+    response.headers['Content-Type'] = 'application/json; charset=UTF-8'
+    response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = (
+        'authorization, Authorization, Content-Type,'
+        'Access-Control-Allow-Origin, Access-Control-Allow-Headers,'
+        'X-Requested-By, Access-Control-Allow-Methods'
+    )
+
+
+class CORSMiddleware(BaseHTTPMiddleware):
+    """Middleware that adds permissive CORS headers to all responses."""
+    
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        add_cors_headers(response)
+        return response

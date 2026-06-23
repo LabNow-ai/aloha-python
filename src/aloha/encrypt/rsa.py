@@ -176,8 +176,7 @@ def main():
             y_dec = rsa_dec.decrypt_with_private_key(y_bin, key_private=key_pri)
             y_txt = y_dec.decode("UTF-8")
 
-            print(
-                "[test {i_case} success = {status}] {src} -> {enc}".format(
-                    i_case=i, status=(y_txt == str_src), src=y_txt, enc=x_txt
-                )
+            msg = "[test {i_case} success = {status}] {src} -> {enc}".format(
+                i_case=i, status=(y_txt == str_src), src=y_txt, enc=x_txt
             )
+            print(msg)

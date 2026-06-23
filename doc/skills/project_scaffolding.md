@@ -28,6 +28,6 @@ To initiate a new project using `aloha-python` as a boilerplate, follow these st
 ## 3. Key Conventions for Boilerplate Projects
 
 -   **`src/` for Application Logic**: All primary application code, including API handlers, business logic, and utility modules, should reside within `src/`. The `src/main.py` script acts as a generic entry point for running Python modules within the `src/` directory. Your application's main function should be callable via `python3 src/main.py your_module.main`.
--   **`resource/config/` for Configuration**: Application configuration files (e.g., `main.conf`, `deploy-DEV.conf`) should be placed under `src/resource/config/`. The `aloha` package's `aloha.config.paths` module handles the discovery and loading of these configuration files.
+-   **`resource/config/` for Configuration**: Application configuration files (e.g., `main.conf`, `deploy-DEV.conf`) should be placed under `src/resource/config/`. The `aloha` package's `aloha.config.paths` module handles the discovery and loading of these configuration files. For detailed information on HOCON configuration, refer to the "Configuration with HOCON" section in the `aloha_package_usage.md` skill.
 
 By adhering to these conventions, AI agents can effectively understand, navigate, and contribute to projects built upon the `aloha-python` framework.

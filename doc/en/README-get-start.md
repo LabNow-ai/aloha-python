@@ -48,45 +48,69 @@ The template is organized around a few common folders:
 
 The `src/` directory contains a demo application that demonstrates how to use the `aloha` package. Here is a brief overview of how to import and use `aloha` for regular Python project development:
 
-1. **Define API Handlers**: Create your API handlers by extending `APIHandler` from `aloha.service.api.v0`. For example, in `src/app_common/api/api_multipart.py`:
+1. **Import `aloha` modules**: Import the necessary `aloha` modules for your application logic. For example, `aloha.logger` for logging, `aloha.config` for configuration, or `aloha.db` for database interactions.
 
-```python
-from aloha.logger import LOG
-from aloha.service.api.v0 import APIHandler
+2. **Configure your application**: Define your application configuration in `src/resource/config/main.conf`.
 
-class MultipartHandler(APIHandler):
-    def response(self):
-        LOG.info("Handling multipart request")
-        return {"status": "success"}
+3. **Implement your application logic**: Write your Python code using the imported `aloha` modules.
 
-default_handlers = [
-    (r"/api_internal/multipart", MultipartHandler),
-]
+4. **Run your application**: You can run your application using the provided `main.py` script:
+
+```bash
+python3 src/main.py your_module.main
 ```
 
-2. **Configure the Application**: Define your application configuration in `src/resource/config/main.conf`. Specify the modules to load:
+This command tells `src/main.py` to find and execute the `main()` function within your specified module (e.g., `your_module.main`).
+
+## Configuration with HOCON
+
+`aloha` uses the HOCON (Human-Optimized Config Object Notation) format for its configuration files. This allows for hierarchical, modular, and human-readable configurations.
+
+### Configuration File Location
+
+By default, `aloha` looks for configuration files in the `src/resource/config/` directory. The primary configuration file is `main.conf`.
+
+### Modular Configuration
+
+HOCON supports including other configuration files, which is useful for modularizing your settings (e.g., separating development, staging, and production configurations).
+
+**Example `main.conf`:**
 
 ```hocon
-service {
-    modules = [
-        "app_common.api.api_multipart"
-    ]
+include "deploy-DEV.conf"
+
+app_name = "MyAlohaApp"
+
+server {
+    host = "0.0.0.0"
+    port = 8080
+}
+
+database {
+    type = "postgresql"
+    connection_string = "${?DB_CONNECTION_STRING}" # Environment variable override
 }
 ```
 
-3. **Start the Application**: Use the `Application` class from `aloha.service.app` to start your service. For example, in `src/app_common/main.py`:
+In this example:
+- `include "deploy-DEV.conf"` brings in settings from another file, allowing for environment-specific overrides.
+- `app_name` and `server` define application-specific settings.
+- `database.connection_string = "${?DB_CONNECTION_STRING}"` demonstrates how to use environment variables to override configuration values, making it flexible for different deployment environments.
+
+### Accessing Configuration in Code
+
+You can access configuration values in your Python code via `aloha.settings.SETTINGS.config`:
 
 ```python
-def main():
-    from aloha.service.app import Application
-    app = Application()
-    app.start()
+from aloha.settings import SETTINGS
+
+app_name = SETTINGS.config.get("app_name")
+server_port = SETTINGS.config.get("server.port")
+
+print(f"Application Name: {app_name}")
+print(f"Server Port: {server_port}")
 ```
 
-You can run the application using the provided `main.py` script:
-
-```bash
-python3 src/main.py app_common.main
-```
+This approach ensures that your application remains configurable and adaptable to various deployment scenarios.
 
 [:octicons-mark-github-16: Go to Template Project](https://github.com/LabNow-ai/aloha-python/tree/main/src){ .md-button }

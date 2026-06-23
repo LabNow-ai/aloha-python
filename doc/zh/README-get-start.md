@@ -48,45 +48,69 @@ pip install aloha[all]
 
 `src/` 目录包含一个演示应用程序，展示了如何使用 `aloha` 包。以下是如何在常规 Python 项目开发中导入和使用 `aloha` 的简要概述：
 
-1. **定义 API 处理程序**：通过继承 `aloha.service.api.v0` 中的 `APIHandler` 来创建你的 API 处理程序。例如，在 `src/app_common/api/api_multipart.py` 中：
+1. **导入 `aloha` 模块**：为你的应用程序逻辑导入必要的 `aloha` 模块。例如，`aloha.logger` 用于日志记录，`aloha.config` 用于配置，或 `aloha.db` 用于数据库交互。
 
-```python
-from aloha.logger import LOG
-from aloha.service.api.v0 import APIHandler
+2. **配置你的应用程序**：在 `src/resource/config/main.conf` 中定义你的应用程序配置。
 
-class MultipartHandler(APIHandler):
-    def response(self):
-        LOG.info("Handling multipart request")
-        return {"status": "success"}
+3. **实现你的应用程序逻辑**：使用导入的 `aloha` 模块编写你的 Python 代码。
 
-default_handlers = [
-    (r"/api_internal/multipart", MultipartHandler),
-]
+4. **运行你的应用程序**：你可以使用提供的 `main.py` 脚本运行应用程序：
+
+```bash
+python3 src/main.py your_module.main
 ```
 
-2. **配置应用程序**：在 `src/resource/config/main.conf` 中定义你的应用程序配置。指定要加载的模块：
+此命令指示 `src/main.py` 查找并执行你指定模块（例如 `your_module.main`）中的 `main()` 函数。
+
+## HOCON 配置
+
+`aloha` 使用 HOCON (Human-Optimized Config Object Notation) 格式作为其配置文件。这允许分层、模块化和人类可读的配置。
+
+### 配置文件位置
+
+默认情况下，`aloha` 会在 `src/resource/config/` 目录中查找配置文件。主配置文件是 `main.conf`。
+
+### 模块化配置
+
+HOCON 支持包含其他配置文件，这对于模块化你的设置非常有用（例如，分离开发、预发布和生产环境的配置）。
+
+**`main.conf` 示例：**
 
 ```hocon
-service {
-    modules = [
-        "app_common.api.api_multipart"
-    ]
+include "deploy-DEV.conf"
+
+app_name = "MyAlohaApp"
+
+server {
+    host = "0.0.0.0"
+    port = 8080
+}
+
+database {
+    type = "postgresql"
+    connection_string = "${?DB_CONNECTION_STRING}" # 环境变量覆盖
 }
 ```
 
-3. **启动应用程序**：使用 `aloha.service.app` 中的 `Application` 类来启动你的服务。例如，在 `src/app_common/main.py` 中：
+在此示例中：
+- `include "deploy-DEV.conf"` 引入了来自另一个文件的设置，允许进行特定于环境的覆盖。
+- `app_name` 和 `server` 定义了应用程序特定的设置。
+- `database.connection_string = "${?DB_CONNECTION_STRING}"` 演示了如何使用环境变量覆盖配置值，使其适用于不同的部署环境。
+
+### 在代码中访问配置
+
+你可以通过 `aloha.settings.SETTINGS.config` 在你的 Python 代码中访问配置值：
 
 ```python
-def main():
-    from aloha.service.app import Application
-    app = Application()
-    app.start()
+from aloha.settings import SETTINGS
+
+app_name = SETTINGS.config.get("app_name")
+server_port = SETTINGS.config.get("server.port")
+
+print(f"Application Name: {app_name}")
+print(f"Server Port: {server_port}")
 ```
 
-你可以使用提供的 `main.py` 脚本运行应用程序：
-
-```bash
-python3 src/main.py app_common.main
-```
+这种方法确保了你的应用程序可配置并适应各种部署场景。
 
 [:octicons-mark-github-16: 前往模板项目](https://github.com/LabNow-ai/aloha-python/tree/main/src){ .md-button }

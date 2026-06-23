@@ -4,10 +4,10 @@ import jwt
 
 from ..logger import LOG
 
-LOG.debug("Using pyjwt == %s" % jwt.__version__.__str__())
+LOG.debug("Using pyjwt == %s" % str(jwt.__version__))
 
 
-def encode(secret_key: str, payload: dict, headers: dict = None, **kwargs):
+def encode(secret_key: str, payload: dict, headers: dict | None = None, **kwargs):
     """Encode a payload into a JWT token."""
     token = jwt.encode(payload=payload, key=secret_key, headers=headers, **kwargs)
     return token

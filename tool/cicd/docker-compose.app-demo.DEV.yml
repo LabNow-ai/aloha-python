@@ -12,17 +12,19 @@ services:
         # - PROFILE_LOCALIZE=${PROFILE_LOCALIZE:-default}
       pull: true
     restart: unless-stopped
+    # env_file: ["../credentials/DEV-app-demo.env"]
     environment:
       # - ENV_PROFILE=${ENV_PROFILE:-DEV}
       - PROFILE_LOCALIZE=${PROFILE_LOCALIZE:-default}
-      - PYTHONPATH=/root/app:/root/src:/root/notebook
-      # env_file: ["../credentials/DEV-app-demo.env"]
+      - PYTHONPATH=/root/app/pkg:/root/app/src:/root/app/notebook
     user: "0:0"
     ports: [ "${PORT_APP:-9000}:9000", "${PORT_WEB:-3000}:3000" ]
     volumes:
-      - ../../doc:/root/doc:rw
-      - ../../notebook:/root/notebook:rw
-      - ../../src:/root/src:rw
-      - ../../app:/root/app:rw
-    working_dir: /root
+      - ../../:/root/app:rw
+      # AI4Coding tools:
+      - "$HOME/.claude:/root/.claude:rw"
+      - "$HOME/.codex:/root/.codex:rw"
+      - "$HOME/.copilot:/root/.copilot:rw"
+      - "$HOME/.gemini:/root/.gemini:rw"
+    working_dir: /root/app
     command: "tail -f /dev/null"

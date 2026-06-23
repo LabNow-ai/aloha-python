@@ -20,6 +20,6 @@ services:
     user: "0:0"
     ports: [ "${PORT_APP:-9000}:9000", "${PORT_WEB:-3000}:3000" ]
     volumes:
-      - ../:/root/app:rw
-    working_dir: /root
+      - ../../:/root/app:rw
+    working_dir: /root/app
     command: "tail -f /dev/null"

@@ -76,7 +76,7 @@ def create_v1_router(handler_class):
     async def handle_post(request: Request, **kwargs):
         try:
             body = await request.json()
-        except:
+        except Exception:
             return JSONResponse({"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}, status_code=400)
         
         try:

@@ -11,10 +11,11 @@ from abc import ABC
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from fastapi import Depends, Request, Response
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
 
 from ...encrypt import jwt
+from ...logger import LOG
 from ...settings import SETTINGS
 from ..http import AbstractApiClient
 from ..http.base_api_handler import AbstractApiHandler as BaseHandler
@@ -67,7 +68,7 @@ class APIHandler(BaseHandler, ABC):
         except Exception as e:
             self.LOG.error(e, exc_info=True)
             self.LOG.info("GET Request [%s]: %s" % (self.request_id, kwargs))
-            return self.finish({"status": "error", "message": [repr(e)]})
+            return self.finish({"status": "error", "message": ["An internal error has occurred!"]})
 
         return self.finish(resp)
 
@@ -77,7 +78,6 @@ def verify_v2_token(request: Request) -> Optional[Dict[str, Any]]:
 
     Returns the decoded token payload if valid, otherwise raises HTTPException.
     """
-    from fastapi import HTTPException, status
 
     access_token = request.headers.get("Access-Token")
     if access_token is None:
@@ -94,7 +94,8 @@ def verify_v2_token(request: Request) -> Optional[Dict[str, Any]]:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access-Token!")
         return payload
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        LOG.error(str(e), exc_info=True)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access-Token!")
 
 
 def create_v2_router(handler_class):
@@ -125,7 +126,8 @@ def create_v2_router(handler_class):
             resp = handler.response(**kwargs)
         except Exception as e:
             handler.LOG.error(e, exc_info=True)
-            return JSONResponse({"status": "error", "message": [str(e)]}, status_code=500)
+            msgs = ["An internal error has occurred.", str(e)]
+            return JSONResponse({"status": "error", "message": msgs}, status_code=500)
 
         return handler.finish(resp)
 
@@ -139,7 +141,8 @@ def create_v2_router(handler_class):
             resp = handler.response(**kwargs)
         except Exception as e:
             handler.LOG.error(e, exc_info=True)
-            return JSONResponse({"status": "error", "message": [repr(e)]}, status_code=500)
+            msgs = ["An internal error has occurred.", repr(e)]
+            return JSONResponse({"status": "error", "message": msgs}, status_code=500)
 
         return handler.finish(resp)
 

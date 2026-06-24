@@ -127,7 +127,8 @@ class AbstractApiHandler(ABC):
         except Exception as e:
             if self.LOG.level == logging.DEBUG:
                 self.LOG.error(e, exc_info=True)
-            return self.finish({"code": 5201, "message": [repr(e)]}, status_code=500)
+            msgs = ["An internal error has occurred!", repr(e)]
+            return self.finish({"code": 5201, "message": msgs}, status_code=500)
 
 
 def create_handler_route(handler_class):

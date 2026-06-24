@@ -36,8 +36,9 @@ class APIHandler(BaseHandler, ABC):
             options = {"verify_exp": False}
             access_token = jwt.decode(secret_key, access_token, options=options)
             if not isinstance(access_token, dict):
-                self.LOG.error("Invalid Access-Token found in request for [%s]: %s" % (str(self._request.url), access_token))
-                return self.finish({"msg": access_token})
+                msg = "Invalid Access-Token found in request for [%s]: %s" % (str(self._request.url), access_token)
+                self.LOG.error(msg)
+                return self.finish({"msg": msg})
         return None
 
     async def post(self, *args, **kwargs):
@@ -51,9 +52,10 @@ class APIHandler(BaseHandler, ABC):
             self.api_args, self.api_kwargs = args or (), kwargs or {}
             resp = self.response(*self.api_args, **self.api_kwargs)
         except Exception as e:
-            self.LOG.error(e, exc_info=True)
             self.LOG.info("POST Request [%s]: %s" % (self.request_id, self._request._body))
-            return self.finish({"status": "error", "message": [str(e)]})
+            msgs = ["An internal error has occurred!", str(e)]
+            self.LOG.error(e, exc_info=True)
+            return self.finish({"status": "error", "message": msgs})
 
         return self.finish(resp)
 
@@ -66,9 +68,10 @@ class APIHandler(BaseHandler, ABC):
             self.api_args, self.api_kwargs = args or (), kwargs or {}
             resp = self.response(*self.api_args, **self.api_kwargs)
         except Exception as e:
-            self.LOG.error(e, exc_info=True)
             self.LOG.info("GET Request [%s]: %s" % (self.request_id, kwargs))
-            return self.finish({"status": "error", "message": ["An internal error has occurred!"]})
+            msgs = ["An internal error has occurred!", str(e)]
+            self.LOG.error(e, exc_info=True)
+            return self.finish({"status": "error", "message": msgs})
 
         return self.finish(resp)
 

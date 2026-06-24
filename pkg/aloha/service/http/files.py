@@ -55,7 +55,6 @@ def iter_over_request_files_sync(request, url_files):
 
     This is a sync wrapper that uses httpx sync client.
     """
-    import httpx
 
     # Handle multipart uploaded files (from FastAPI form data)
     if hasattr(request, "_form"):

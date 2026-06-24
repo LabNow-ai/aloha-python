@@ -1,5 +1,6 @@
 """Base FastAPI dependencies and request helpers for aloha services."""
 
+import asyncio
 import json
 import logging
 from abc import ABC
@@ -60,8 +61,6 @@ class AbstractApiHandler(ABC):
         # For multipart/form-data, use request_param logic
         if content_type.startswith("multipart/form-data"):
             return self.request_param
-
-        import asyncio
 
         try:
             body = asyncio.get_event_loop().run_until_complete(self._request.body())

@@ -21,11 +21,21 @@ def extract_img_url(string):
 def extract_text(raw_data):
     """Extract visible text from an HTML fragment."""
     if raw_data is not None:
-        raw_data = re.sub(r"<script>[\s\S]*</script>", "", raw_data)
         html = etree.HTML(raw_data)
 
         content = []
         if html is not None:
+            for script in html.xpath("//script"):
+                parent = script.getparent()
+                if parent is not None:
+                    if script.tail:
+                        prev = script.getprevious()
+                        if prev is not None:
+                            prev.tail = (prev.tail or "") + script.tail
+                        else:
+                            parent.text = (parent.text or "") + script.tail
+                    parent.remove(script)
+
             html_data = html.xpath("/html/body/*//text()")
             for data in html_data:
                 tmp = (

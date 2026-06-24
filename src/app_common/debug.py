@@ -27,7 +27,3 @@ def main():
 
     # The event loop starts after start.
     app.start()
-
-
-if __name__ == "__main__":
-    main()

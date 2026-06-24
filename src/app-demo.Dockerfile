@@ -15,8 +15,9 @@ ARG PROFILE_LOCALIZE
 
 
 COPY . /tmp/app
-RUN set -ex && cd /tmp/app && mkdir -pv ${DIR_APP} \
+RUN set -ex && mkdir -pv ${DIR_APP} \
  && source /opt/utils/script-localize.sh ${PROFILE_LOCALIZE} \
+ && cd /tmp/src \
  && if [[ "$ENABLE_CODE_BUILD" = "true" ]] ; then \
       echo "-> Building src to binary..." && pip install -U aloha[build] && aloha compile --base=./src --dist=${DIR_APP}/ ; \
     else \
@@ -35,8 +36,8 @@ USER root
 WORKDIR ${DIR_APP}
 COPY --from=builder ${DIR_APP} ${DIR_APP}/
 
-ENV PORT_SVC=${PORT_SVC:-80} \
-    ENTRYPOINT="app_common.debug"
+ENV PORT_SVC=${PORT_SVC:-80}
+ENV ENTRYPOINT="app_common.debug"
 
 RUN set -eux && pwd && ls -alh \
  && source /opt/utils/script-localize.sh ${PROFILE_LOCALIZE} \

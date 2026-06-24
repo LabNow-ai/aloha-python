@@ -4,12 +4,11 @@ pyhocon
 pycryptodome
 packaging
 Cython
-requests
-tornado
 psutil
 pyjwt
 fastapi
 httpx
+uvicorn
 sqlalchemy
 psycopg[binary]
 pymysql

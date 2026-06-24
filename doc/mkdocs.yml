@@ -70,6 +70,5 @@ nav:
       - Service: "api/service.md"
       - Encryption: "api/encrypt.md"
       - Database: "api/db.md"
-      - Time: "api/time.md"
       - Utilities: "api/util.md"
       - Testing: "api/testing.md"

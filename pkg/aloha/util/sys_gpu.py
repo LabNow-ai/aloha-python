@@ -66,14 +66,14 @@ class NvInfo:
             try:
                 name = nvml.nvmlDeviceGetName(handler).decode(encoding="UTF-8")
             except Exception as e:
-                LOG.info("Failed to get device name!")
-                LOG.info(str(e))
+                msg = "Failed to get device name: %s" % str(e)
+                LOG.info(msg)
 
             try:
                 arch = nvml.nvmlDeviceGetArchitecture(handler)
             except Exception as e:
-                LOG.info("Failed to get device architecture!")
-                LOG.info(str(e))
+                msg = "Failed to get device architecture: %s" % str(e)
+                LOG.info(msg)
 
             device = Device(index=i, name=name, arch=arch)
             LOG.debug("Found device {index} info: name={name}; arch={arch}".format(**device._asdict()))
@@ -103,7 +103,7 @@ class NvInfo:
         try:
             return nvidia_smi.getInstance()
         except Exception as e:
-            LOG.warn("Failed to get smi: %s" % str(e))
+            LOG.warning("Failed to get smi: %s" % str(e))
             return
 
 

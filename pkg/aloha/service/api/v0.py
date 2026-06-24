@@ -1,21 +1,24 @@
-"""Version 0 JSON API helpers.
+"""Version 0 JSON API helpers for FastAPI.
 
 This module defines the simplest request/response protocol used by aloha:
 request bodies are passed directly to the handler method and the response is
 serialized as a JSON object with a `code` and `message` field.
 """
 
-import json
 import logging
 from abc import ABC
 
-from ..http import AbstractApiClient, AbstractApiHandler
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
-__all__ = ("APIHandler", "APICaller")
+from ..http import AbstractApiClient
+from ..http.base_api_handler import AbstractApiHandler as BaseHandler
+
+__all__ = ("APIHandler", "APICaller", "create_v0_router")
 
 
-class APIHandler(AbstractApiHandler, ABC):
-    """Base Tornado handler for v0 JSON endpoints.
+class APIHandler(BaseHandler, ABC):
+    """Base handler for v0 JSON endpoints using FastAPI.
 
     Subclasses implement :meth:`response`, which receives parsed request data
     and returns a Python object that can be JSON-serialized.
@@ -27,20 +30,84 @@ class APIHandler(AbstractApiHandler, ABC):
         """Parse the request body, call :meth:`response`, and return JSON."""
         req_body = self.request_body
 
-        if req_body is not None:  # body_arguments
+        if req_body is not None:
             kwargs.update(req_body)
 
         resp = dict(code=5200, message=["success"])
         try:
-            result = self.response(*args, **kwargs)  # this call may throw TypeError when argument missing
+            result = self.response(*args, **kwargs)
             resp["data"] = result
         except Exception as e:
             if self.LOG.level == logging.DEBUG:
                 self.LOG.error(e, exc_info=True)
             return self.finish({"code": 5201, "message": [repr(e)]})
 
-        resp = json.dumps(resp, ensure_ascii=False, default=str, separators=(",", ":"))
         return self.finish(resp)
+
+    async def get(self, *args, **kwargs):
+        """Handle GET request (useful for some v0 endpoints)."""
+        kwargs.update(self.request_param)
+        resp = dict(code=5200, message=["success"])
+        try:
+            result = self.response(*args, **kwargs)
+            resp["data"] = result
+        except Exception as e:
+            if self.LOG.level == logging.DEBUG:
+                self.LOG.error(e, exc_info=True)
+            return self.finish({"code": 5201, "message": [repr(e)]})
+        return self.finish(resp)
+
+
+def create_v0_router(handler_class):
+    """Create FastAPI routes for a v0 API handler class.
+
+    Args:
+        handler_class: A class inheriting from APIHandler
+
+    Returns:
+        A function that registers routes on a FastAPI app
+    """
+
+    async def handle_post(request: Request, **kwargs):
+        handler = handler_class()
+        handler._request = request
+
+        # Get body for POST
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+
+        kwargs.update(body)
+        resp = dict(code=5200, message=["success"])
+        try:
+            result = handler.response(**kwargs)
+            resp["data"] = result
+        except Exception as e:
+            if handler.LOG.level == logging.DEBUG:
+                handler.LOG.error(e, exc_info=True)
+            return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
+
+        return JSONResponse(resp)
+
+    async def handle_get(request: Request, **kwargs):
+        handler = handler_class()
+        handler._request = request
+
+        # Get query params for GET
+        kwargs.update(dict(request.query_params))
+        resp = dict(code=5200, message=["success"])
+        try:
+            result = handler.response(**kwargs)
+            resp["data"] = result
+        except Exception as e:
+            if handler.LOG.level == logging.DEBUG:
+                handler.LOG.error(e, exc_info=True)
+            return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
+
+        return JSONResponse(resp)
+
+    return handle_post, handle_get
 
 
 class APICaller(AbstractApiClient):

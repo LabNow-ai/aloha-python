@@ -70,6 +70,5 @@ nav:
       - 服务层: "api/service.md"
       - 加密: "api/encrypt.md"
       - 数据库: "api/db.md"
-      - 时间工具: "api/time.md"
       - 工具函数: "api/util.md"
       - 测试工具: "api/testing.md"

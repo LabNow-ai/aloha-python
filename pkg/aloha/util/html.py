@@ -1,7 +1,5 @@
 """HTML extraction helpers."""
 
-import re
-
 from lxml import etree
 
 

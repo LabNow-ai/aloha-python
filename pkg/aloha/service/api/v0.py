@@ -75,7 +75,7 @@ def create_v0_router(handler_class):
         # Get body for POST
         try:
             body = await request.json()
-        except:
+        except Exception:
             body = {}
 
         kwargs.update(body)

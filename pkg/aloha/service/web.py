@@ -89,7 +89,7 @@ class FastAPIApplication:
 
                 try:
                     body = await request.json()
-                except:
+                except Exception:
                     body = {}
 
                 kwargs.update(body)
@@ -164,7 +164,7 @@ class FastAPIApplication:
 
                 try:
                     body = await request.json()
-                except:
+                except Exception:
                     body = {}
 
                 kwargs.update(body)

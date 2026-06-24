@@ -68,7 +68,8 @@ class OpenApiClient:
                 expires_in = int(data["expires_in"])
                 self.expires_at = datetime.now() + timedelta(minutes=expires_in - 1)
             except Exception as e:
-                LOG.error("Exception acquiring ESG access token from [%s]: %s" % (self.url_oauth_get_token, str(e)))
+                msg = "Exception acquiring ESG access token from [%s]: %s" % (self.url_oauth_get_token, str(e))
+                LOG.error(msg)
 
         return self.access_token
 

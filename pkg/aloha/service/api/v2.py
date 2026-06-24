@@ -113,7 +113,7 @@ def create_v2_router(handler_class):
 
         try:
             body = await request.json()
-        except:
+        except Exception:
             body = {}
 
         kwargs = body

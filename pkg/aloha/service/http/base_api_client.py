@@ -45,7 +45,7 @@ class AbstractApiClient(ABC):
         """Build the default request headers used by aloha clients."""
         headers = {
             "Content-Type": "application/json",
-            "Request-ID": str(uuid.uuid1()),
+            "Request-ID": str(uuid.uuid4()),
         }
         return headers
 

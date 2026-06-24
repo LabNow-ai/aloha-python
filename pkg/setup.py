@@ -38,7 +38,7 @@ setup(
     author="LabNow.ai",
     author_email="postmaster@labnow.ai",
     license="Apache-2.0",
-    url="https://github.com/LabNow.ai/aloha",
+    url="https://github.com/LabNow.ai/aloha-python",
     project_urls={
         "Source": "https://github.com/LabNow-ai/aloha-python",
         "CI Pipeline": "https://github.com/LabNow-ai/aloha-python/actions",
@@ -54,7 +54,7 @@ setup(
         **dict_extra_requires,
         "all": sorted(y for x in dict_extra_requires.values() for y in x),
     },
-    python_requires=">=3.6",
+    python_requires=">=3.10",
     entry_points={"console_scripts": ["aloha = aloha.script.base:main"]},
     data_files=[],
     description="Aloha - a versatile Python utility package for building services",

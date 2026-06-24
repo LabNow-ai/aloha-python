@@ -9,9 +9,9 @@ import json
 import logging
 from abc import ABC
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-from fastapi import Request, Response, Depends
+from fastapi import Depends, Request, Response
 from fastapi.responses import JSONResponse
 
 from ...encrypt import jwt
@@ -35,9 +35,7 @@ class APIHandler(BaseHandler, ABC):
             options = {"verify_exp": False}
             access_token = jwt.decode(secret_key, access_token, options=options)
             if not isinstance(access_token, dict):
-                self.LOG.error(
-                    "Invalid Access-Token found in request for [%s]: %s" % (str(self._request.url), access_token)
-                )
+                self.LOG.error("Invalid Access-Token found in request for [%s]: %s" % (str(self._request.url), access_token))
                 return self.finish({"msg": access_token})
         return None
 
@@ -76,76 +74,65 @@ class APIHandler(BaseHandler, ABC):
 
 def verify_v2_token(request: Request) -> Optional[Dict[str, Any]]:
     """Dependency to verify v2 access token.
-    
+
     Returns the decoded token payload if valid, otherwise raises HTTPException.
     """
     from fastapi import HTTPException, status
-    
+
     access_token = request.headers.get("Access-Token")
     if access_token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Access-Token in request header!"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access-Token in request header!")
+
     secret_key = SETTINGS.config.get("APP_SECRET_KEY")
     if not secret_key:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="APP_SECRET_KEY not configured!"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="APP_SECRET_KEY not configured!")
+
     options = {"verify_exp": False}
     try:
         payload = jwt.decode(secret_key, access_token, options=options)
         if not isinstance(payload, dict):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid Access-Token!"
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access-Token!")
         return payload
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 
 def create_v2_router(handler_class):
     """Create FastAPI routes for a v2 API handler class with JWT token validation.
-    
+
     Args:
         handler_class: A class inheriting from APIHandler
-        
+
     Returns:
         Tuple of (handle_post, handle_get) functions for the routes
     """
+
     async def handle_post(request: Request, token_payload: Dict = Depends(verify_v2_token)):
         handler = handler_class()
         handler._request = request
-        
+
         try:
             body = await request.json()
         except:
             body = {}
-        
+
         kwargs = body
         try:
             if handler.LOG.level == logging.DEBUG:
                 s_kwargs = json.dumps(kwargs, ensure_ascii=False)
                 handler.LOG.debug("POST Request [%s]: %s" % (handler.request_id, s_kwargs[:1000]))
-            
+
             resp = handler.response(**kwargs)
         except Exception as e:
             handler.LOG.error(e, exc_info=True)
             return JSONResponse({"status": "error", "message": [str(e)]}, status_code=500)
-        
+
         return handler.finish(resp)
-    
+
     async def handle_get(request: Request, token_payload: Dict = Depends(verify_v2_token)):
         handler = handler_class()
         handler._request = request
-        
+
         kwargs = dict(request.query_params)
         try:
             handler.LOG.debug("GET Request [%s]: %s" % (handler.request_id, kwargs))
@@ -153,9 +140,9 @@ def create_v2_router(handler_class):
         except Exception as e:
             handler.LOG.error(e, exc_info=True)
             return JSONResponse({"status": "error", "message": [repr(e)]}, status_code=500)
-        
+
         return handler.finish(resp)
-    
+
     return handle_post, handle_get
 
 

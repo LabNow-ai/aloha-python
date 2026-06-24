@@ -5,15 +5,13 @@ request bodies are passed directly to the handler method and the response is
 serialized as a JSON object with a `code` and `message` field.
 """
 
-import json
 import logging
 from abc import ABC
-from typing import Any, Optional, Dict
 
-from fastapi import APIRouter, FastAPI, Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from ..http import AbstractApiClient, AbstractApiHandler
+from ..http import AbstractApiClient
 from ..http.base_api_handler import AbstractApiHandler as BaseHandler
 
 __all__ = ("APIHandler", "APICaller", "create_v0_router")
@@ -62,25 +60,24 @@ class APIHandler(BaseHandler, ABC):
 
 def create_v0_router(handler_class):
     """Create FastAPI routes for a v0 API handler class.
-    
+
     Args:
         handler_class: A class inheriting from APIHandler
-        
+
     Returns:
         A function that registers routes on a FastAPI app
     """
-    from fastapi import APIRoute
-    
+
     async def handle_post(request: Request, **kwargs):
         handler = handler_class()
         handler._request = request
-        
+
         # Get body for POST
         try:
             body = await request.json()
         except:
             body = {}
-        
+
         kwargs.update(body)
         resp = dict(code=5200, message=["success"])
         try:
@@ -88,16 +85,17 @@ def create_v0_router(handler_class):
             resp["data"] = result
         except Exception as e:
             import logging
+
             if handler.LOG.level == logging.DEBUG:
                 handler.LOG.error(e, exc_info=True)
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
-        
+
         return JSONResponse(resp)
-    
+
     async def handle_get(request: Request, **kwargs):
         handler = handler_class()
         handler._request = request
-        
+
         # Get query params for GET
         kwargs.update(dict(request.query_params))
         resp = dict(code=5200, message=["success"])
@@ -106,12 +104,13 @@ def create_v0_router(handler_class):
             resp["data"] = result
         except Exception as e:
             import logging
+
             if handler.LOG.level == logging.DEBUG:
                 handler.LOG.error(e, exc_info=True)
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
-        
+
         return JSONResponse(resp)
-    
+
     return handle_post, handle_get
 
 

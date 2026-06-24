@@ -1,13 +1,14 @@
 """Service application bootstrap utilities for FastAPI."""
 
 import asyncio
-import logging
+
 import uvicorn
 
 from ..logger import LOG
 
 try:
     import uvloop
+
     LOG.info("Using uvloop == %s for service event loop..." % uvloop.__version__)
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ImportError:
@@ -32,9 +33,9 @@ class Application:
         """Start the FastAPI app using uvicorn."""
         port = self.web_app.get_port()
         workers = self.web_app.get_workers()
-        
+
         LOG.info("Starting FastAPI service at port [%s] with [%s] workers...", port, workers)
-        
+
         try:
             # Configure uvicorn
             config = uvicorn.Config(
@@ -46,14 +47,15 @@ class Application:
                 access_log=True,
             )
             self._server = uvicorn.Server(config)
-            
+
             # Run with uvloop if available
             try:
                 import uvloop
+
                 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
             except ImportError:
                 pass
-            
+
             asyncio.run(self._server.serve())
         except KeyboardInterrupt:
             LOG.info("Service interrupted by user")

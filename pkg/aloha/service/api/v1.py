@@ -8,9 +8,8 @@ import json
 import logging
 import uuid
 from abc import ABC
-from typing import Optional, Dict, Any
 
-from fastapi import Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from ...encrypt.hash import get_md5_of_str, get_sha256_of_str
@@ -66,19 +65,22 @@ class APIHandler(BaseHandler, ABC):
 
 def create_v1_router(handler_class):
     """Create FastAPI routes for a v1 API handler class with signing validation.
-    
+
     Args:
         handler_class: A class inheriting from APIHandler
-        
+
     Returns:
         An async function that handles v1 signed requests
     """
+
     async def handle_post(request: Request, **kwargs):
         try:
             body = await request.json()
         except Exception:
-            return JSONResponse({"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}, status_code=400)
-        
+            return JSONResponse(
+                {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}, status_code=400
+            )
+
         try:
             salt_uuid = body.pop("salt_uuid")
             app_id = body.pop("app_id")
@@ -86,14 +88,14 @@ def create_v1_router(handler_class):
             data = body.pop("data")
         except KeyError:
             return JSONResponse({"code": "5102", "message": ["Required argument field(s) missing..."]}, status_code=400)
-        
+
         is_valid_req = sign_check(salt_uuid=salt_uuid, app_id=app_id, sign=sign, data=data)
         if not is_valid_req:
             return JSONResponse({"code": "5104", "message": ["Invalid sign, sign check failed!"]}, status_code=401)
-        
+
         handler = handler_class()
         handler._request = request
-        
+
         resp = dict(code=5200, message=["success"])
         try:
             result = handler.response(**data)
@@ -101,12 +103,13 @@ def create_v1_router(handler_class):
             resp["salt_uuid"] = salt_uuid
         except Exception as e:
             import logging
+
             if handler.LOG.level == logging.DEBUG:
                 handler.LOG.error(e, exc_info=True)
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
-        
+
         return JSONResponse(resp)
-    
+
     return handle_post
 
 

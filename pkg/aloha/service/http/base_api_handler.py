@@ -3,26 +3,22 @@
 import json
 from abc import ABC
 from datetime import datetime
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import Request, Response
-from fastapi.responses import JSONResponse
-from starlette.datastructures import UploadFile
 
 from ...logger import LOG
 
 
 class AbstractApiHandler(ABC):
     """Shared request parsing and response helpers for JSON APIs.
-    
+
     This is a base class that provides utility methods for API handlers.
     Subclasses should inherit from this and implement the response() method.
     """
-    
+
     LOG = LOG
-    MAP_ERROR_INFO: dict = {
-        'BAD_REQUEST': {'code': '5101', 'message': ['Bad request: fail to parse body as JSON object!']}
-    }
+    MAP_ERROR_INFO: dict = {"BAD_REQUEST": {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}}
 
     def __init__(self):
         """Initialize request state used by subclasses."""
@@ -39,40 +35,41 @@ class AbstractApiHandler(ABC):
     def request_header_content_type(self) -> str:
         """Return the request content type with a JSON default."""
         if self._request is None:
-            return 'application/json; charset=utf-8'
-        return self._request.headers.get('Content-Type', 'application/json; charset=utf-8')
+            return "application/json; charset=utf-8"
+        return self._request.headers.get("Content-Type", "application/json; charset=utf-8")
 
     @property
     def request_id(self) -> str:
         """Return or create a request identifier for tracing."""
         if self._request is None:
-            return datetime.now().strftime('%Y%m%d-%H%M%S-%f')
-        request_id = self._request.headers.get('Request-ID')
+            return datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        request_id = self._request.headers.get("Request-ID")
         if request_id is None:
-            request_id = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+            request_id = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         return request_id
 
     @property
     def request_body(self) -> Optional[dict]:
         """Parse the request body as JSON or multipart form data."""
         content_type: str = self.request_header_content_type
-        
+
         if self._request is None:
             return {}
 
         # For multipart/form-data, use request_param logic
-        if content_type.startswith('multipart/form-data'):
+        if content_type.startswith("multipart/form-data"):
             return self.request_param
 
         import asyncio
+
         try:
             body = asyncio.get_event_loop().run_until_complete(self._request.body())
-            body_str = body.decode('utf-8')
+            body_str = body.decode("utf-8")
             if body_str:
                 return json.loads(body_str)
             return {}
         except (UnicodeDecodeError, json.JSONDecodeError):
-            return self.MAP_ERROR_INFO['BAD_REQUEST']
+            return self.MAP_ERROR_INFO["BAD_REQUEST"]
 
     @property
     def request_param(self) -> dict:
@@ -100,12 +97,12 @@ class AbstractApiHandler(ABC):
     def finish(self, data: Any, status_code: int = 200) -> Response:
         """Create a JSON response with proper content type."""
         if isinstance(data, dict):
-            content = json.dumps(data, ensure_ascii=False, default=str, separators=(',', ':'))
+            content = json.dumps(data, ensure_ascii=False, default=str, separators=(",", ":"))
         elif isinstance(data, str):
             content = data
         else:
-            content = json.dumps(data, ensure_ascii=False, default=str, separators=(',', ':'))
-        return Response(content=content, status_code=status_code, media_type='application/json')
+            content = json.dumps(data, ensure_ascii=False, default=str, separators=(",", ":"))
+        return Response(content=content, status_code=status_code, media_type="application/json")
 
     def set_header(self, key: str, value: str) -> None:
         """Set a response header (no-op in base class, overridden in FastAPI route)."""
@@ -120,7 +117,7 @@ class AbstractApiHandler(ABC):
         self._request = request
         self.api_args = args
         self.api_kwargs = kwargs
-        
+
         try:
             result = self.response(*args, **kwargs)
             if isinstance(result, (dict, list)):
@@ -128,18 +125,19 @@ class AbstractApiHandler(ABC):
             return result
         except Exception as e:
             import logging
+
             if self.LOG.level == logging.DEBUG:
                 self.LOG.error(e, exc_info=True)
-            return self.finish({'code': 5201, 'message': [repr(e)]}, status_code=500)
+            return self.finish({"code": 5201, "message": [repr(e)]}, status_code=500)
 
 
 def create_handler_route(handler_class):
     """Create a FastAPI route wrapper for a handler class."""
     from fastapi import APIRoute
-    
+
     class HandlerRoute(APIRoute):
         async def _execute_handler(self, request: Request, **kwargs) -> Response:
             handler = handler_class()
             return await handler._handle_request(request, **kwargs)
-    
+
     return HandlerRoute

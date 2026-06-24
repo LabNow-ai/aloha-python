@@ -61,11 +61,9 @@ You can access configuration values in your Python code via `aloha.settings.SETT
 ```python
 from aloha.settings import SETTINGS
 
-app_name = SETTINGS.config.get("app_name")
-server_port = SETTINGS.config.get("server.port")
-
-print(f"Application Name: {app_name}")
-print(f"Server Port: {server_port}")
+config = SETTINGS.config
+print(f"Application Name: {config.get("app_name")}")
+print(f"Server Port: {config.get("server.port")}")
 ```
 
 This approach ensures that your application remains configurable and adaptable to various deployment scenarios.

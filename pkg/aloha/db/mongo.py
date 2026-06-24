@@ -68,7 +68,8 @@ class _MongoDBOperation:
             "maxPoolSize": config.get("maxPoolSize"),
             "authSource": config.get("authSource", db_name),
         }
-        LOG.debug(_config)
+        msg = {k: ("***" if k == "password" else v) for k, v in _config.items()}
+        LOG.debug(msg)
 
         try:
             self.conn = pymongo.MongoClient(**_config)

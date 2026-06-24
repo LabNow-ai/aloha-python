@@ -1,6 +1,5 @@
-"""Elasticsearch connection helpers."""
-
 import json
+import re
 
 from elasticsearch import Elasticsearch
 
@@ -8,6 +7,16 @@ from ..logger import LOG
 from .base import PasswordVault
 
 __all__ = ("ElasticSearchOperator",)
+
+
+def _mask_hosts(hosts):
+    if isinstance(hosts, list):
+        return [_mask_hosts(h) for h in hosts]
+    if isinstance(hosts, dict):
+        return {k: ("***" if k in ("password", "http_auth") else _mask_hosts(v)) for k, v in hosts.items()}
+    if isinstance(hosts, str):
+        return re.sub(r"([^:/]+://)?([^:/]+):([^@]+)@", r"\1\2:***@", hosts)
+    return hosts
 
 
 class ElasticSearchOperator:
@@ -21,14 +30,17 @@ class ElasticSearchOperator:
         username = config.get("username")
         password = password_vault.get_password(config.get("password"))
 
+        hosts = config.get("host", "localhost")
+        masked_hosts = _mask_hosts(hosts)
+        LOG.debug("ElasticSearch connection info: " + str(masked_hosts))
+
         self._config = {
             "http_auth": (username, password) if username is not None and password is not None else None,
-            "hosts": config.get("host", "localhost"),
+            "hosts": hosts,
             "timeout": config.get("timeout", 0.1),
             "max_retries": config.get("max_retries", 3),
             "retry_on_timeout": config.get("retry_on_timeout", True),
         }
-        LOG.debug("ElasticSearch connection info: " + str(self._config["hosts"]))
 
         self.index_config = index_config
         self.index_name = self.es_config.get("index_name")

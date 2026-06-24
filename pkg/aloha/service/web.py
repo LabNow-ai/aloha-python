@@ -45,7 +45,28 @@ class FastAPIApplication:
         """Create the FastAPI application and its routes."""
         self.config = config or {}
         self.app = FastAPI(title="Aloha Service", version="1.0.0", **kwargs)
+        self._setup_default_handler()
         self._setup_routes()
+
+    def _setup_default_handler(self):
+        """Register a custom default 404 handler when configured."""
+        handler_class = self.config.get("default_handler_class")
+        if not handler_class:
+            return
+
+        @self.app.exception_handler(404)
+        async def _default_404_handler(request: Request, exc: Exception):
+            handler = handler_class(request=request)
+            if hasattr(handler, "handle") and callable(handler.handle):
+                return await handler.handle(request)
+            if hasattr(handler, "__call__") and callable(handler):
+                return await handler(request)
+            if hasattr(handler, "response") and callable(handler.response):
+                return await handler.response()
+            return JSONResponse(
+                {"code": 404, "message": ["Not Found"], "data": None},
+                status_code=404,
+            )
 
     def _setup_routes(self):
         """Setup routes from configured service modules."""

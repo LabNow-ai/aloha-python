@@ -8,7 +8,7 @@ FROM ${BASE_NAMESPACE:+$BASE_NAMESPACE/}${BASE_IMG} AS dev
 
 ARG PROFILE_LOCALIZE
 
-COPY app/requirements.txt /tmp/
+COPY src/requirements.txt /tmp/
 
 USER root
 RUN set -eux && pwd && ls -alh \
@@ -17,7 +17,7 @@ RUN set -eux && pwd && ls -alh \
  && npm install -g pnpm \
  # ----------- handle backend matters ------------
  && pip install -U --no-cache-dir pip jupyterlab \
- # && pip install -U --no-cache-dir -r /tmp/requirements.txt \
+ && pip install -U --no-cache-dir -r /tmp/requirements.txt \
  # ----------- install db client to connect db via terminal ------------
  && source /opt/utils/script-setup-db-clients.sh && setup_postgresql_client 17 \
  # ----------- clean up -----------

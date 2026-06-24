@@ -6,7 +6,7 @@ services:
     hostname: ${CONTAINER_NAME:-dev-app-demo}
     build:
       context: ../../
-      dockerfile: tool/dev-demo.Dockerfile
+      dockerfile: src/dev-demo.Dockerfile
       args:
         - ENABLE_CODE_BUILD=false
         # - PROFILE_LOCALIZE=${PROFILE_LOCALIZE:-default}

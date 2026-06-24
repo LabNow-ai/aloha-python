@@ -6,7 +6,7 @@ from abc import ABC
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import APIRoute, Request, Response
+from fastapi import APIRouter, Request, Response
 
 from ...logger import LOG
 
@@ -133,7 +133,7 @@ class AbstractApiHandler(ABC):
 def create_handler_route(handler_class):
     """Create a FastAPI route wrapper for a handler class."""
 
-    class HandlerRoute(APIRoute):
+    class HandlerRoute(APIRouter):
         async def _execute_handler(self, request: Request, **kwargs) -> Response:
             handler = handler_class()
             return await handler._handle_request(request, **kwargs)

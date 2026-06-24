@@ -16,8 +16,8 @@ def get_gpu_status_for_tf(*args, **kwargs) -> dict:
         LOG.info("tensorflow version = %s" % tf.__version__)
         status = Status(version=tf.__version__, gpu_availability=tf.test.is_gpu_available())
     except Exception as e:
-        LOG.error("Error detecting CUDA availability for tensorflow")
-        LOG.error(str(e))
+        msg = "Error detecting CUDA availability for tensorflow: %s" % str(e)
+        LOG.warning(msg)
     return status._asdict()
 
 
@@ -29,8 +29,8 @@ def get_gpu_status_for_torch(*args, **kwargs) -> dict:
         LOG.info("torch version = %s" % torch.__version__)
         status = Status(version=torch.__version__, gpu_availability=torch.cuda.is_available())
     except Exception as e:
-        LOG.error("Error detecting CUDA availability for torch")
-        LOG.error(str(e))
+        msg = "Error detecting CUDA availability for torch: %s" % str(e)
+        LOG.warning(msg)
     return status._asdict()
 
 
@@ -43,8 +43,8 @@ def get_gpu_status_for_paddle(*args, **kwargs) -> dict:
         paddle.utils.run_check()
         status = Status(version=paddle.__version__, gpu_availability=True)
     except Exception as e:
-        LOG.error("Error detecting CUDA availability for paddle")
-        LOG.error(str(e))
+        msg = "Error detecting CUDA availability for paddle: %s" % str(e)
+        LOG.warning(msg)
     return status._asdict()
 
 

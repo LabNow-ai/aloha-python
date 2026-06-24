@@ -84,8 +84,6 @@ def create_v0_router(handler_class):
             result = handler.response(**kwargs)
             resp["data"] = result
         except Exception as e:
-            import logging
-
             if handler.LOG.level == logging.DEBUG:
                 handler.LOG.error(e, exc_info=True)
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
@@ -103,8 +101,6 @@ def create_v0_router(handler_class):
             result = handler.response(**kwargs)
             resp["data"] = result
         except Exception as e:
-            import logging
-
             if handler.LOG.level == logging.DEBUG:
                 handler.LOG.error(e, exc_info=True)
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)

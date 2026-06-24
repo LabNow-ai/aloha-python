@@ -107,9 +107,7 @@ class FastAPIApplication:
                         resp["data"] = result
                     return JSONResponse(resp)
                 except Exception as e:
-                    import logging as log_module
-
-                    if handler.LOG.level == log_module.DEBUG:
+                    if handler.LOG.level == logging.DEBUG:
                         handler.LOG.error(e, exc_info=True)
                     return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
@@ -144,9 +142,7 @@ class FastAPIApplication:
                         resp["data"] = result
                     return JSONResponse(resp)
                 except Exception as e:
-                    import logging as log_module
-
-                    if handler.LOG.level == log_module.DEBUG:
+                    if handler.LOG.level == logging.DEBUG:
                         handler.LOG.error(e, exc_info=True)
                     return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
@@ -178,9 +174,7 @@ class FastAPIApplication:
                     result = handler.response(**kwargs)
                     resp["data"] = result
                 except Exception as e:
-                    import logging as log_module
-
-                    if handler.LOG.level == log_module.DEBUG:
+                    if handler.LOG.level == logging.DEBUG:
                         handler.LOG.error(e, exc_info=True)
                     return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 

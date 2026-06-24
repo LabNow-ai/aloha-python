@@ -54,7 +54,7 @@ class Application:
 
                 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
             except ImportError:
-                pass
+                LOG.debug("uvloop is not installed; continuing with default asyncio event loop.")
 
             asyncio.run(self._server.serve())
         except KeyboardInterrupt:

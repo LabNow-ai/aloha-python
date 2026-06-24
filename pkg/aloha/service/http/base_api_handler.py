@@ -1,11 +1,12 @@
 """Base FastAPI dependencies and request helpers for aloha services."""
 
 import json
+import logging
 from abc import ABC
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import Request, Response
+from fastapi import APIRoute, Request, Response
 
 from ...logger import LOG
 
@@ -124,8 +125,6 @@ class AbstractApiHandler(ABC):
                 return self.finish(result)
             return result
         except Exception as e:
-            import logging
-
             if self.LOG.level == logging.DEBUG:
                 self.LOG.error(e, exc_info=True)
             return self.finish({"code": 5201, "message": [repr(e)]}, status_code=500)
@@ -133,7 +132,6 @@ class AbstractApiHandler(ABC):
 
 def create_handler_route(handler_class):
     """Create a FastAPI route wrapper for a handler class."""
-    from fastapi import APIRoute
 
     class HandlerRoute(APIRoute):
         async def _execute_handler(self, request: Request, **kwargs) -> Response:

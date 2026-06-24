@@ -102,8 +102,6 @@ def create_v1_router(handler_class):
             resp["data"] = result
             resp["salt_uuid"] = salt_uuid
         except Exception as e:
-            import logging
-
             if handler.LOG.level == logging.DEBUG:
                 handler.LOG.error(e, exc_info=True)
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)

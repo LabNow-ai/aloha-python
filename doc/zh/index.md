@@ -1,6 +1,6 @@
 # 介绍
 
-Aloha！感谢你关注这个 Python 包。
+Aloha！感谢关注这个 Python 包。
 
 [![License](https://img.shields.io/github/license/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/blob/main/LICENSE)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/LabNow-ai/aloha-python/build.yml?branch=main)](https://github.com/LabNow-ai/aloha-python/actions)

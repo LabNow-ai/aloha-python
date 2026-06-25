@@ -1,70 +1,28 @@
+import os
+import shutil
 from datetime import datetime
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+# Get directory containing this setup.py
+base_dir = os.path.dirname(os.path.abspath(__file__))
 
-_now = datetime.now()
-_version = "%s.%02d%02d.%02d%02d" % (_now.year, _now.month, _now.day, _now.hour, _now.minute)
+# 1. Resolve README.md presence
+# In Python package builds, README.md is required to be in the same directory.
+# If it is missing (e.g., built locally without github workflow cp command), we copy it from the root directory.
+readme_path = os.path.join(base_dir, "README.md")
+root_readme = os.path.join(base_dir, "..", "README.md")
+if not os.path.exists(readme_path) and os.path.exists(root_readme):
+    shutil.copyfile(root_readme, readme_path)
 
-with open("./aloha/_version.py", "wt") as fp:
+# 2. Dynamic Version Generation
+# Writes the version to aloha/_version.py using the current timestamp.
+_t = datetime.now()
+_version = "%s.%02d%02d.%02d%02d" % (_t.year, _t.month, _t.day, _t.hour, _t.minute)
+
+version_file_path = os.path.join(base_dir, "aloha", "_version.py")
+with open(version_file_path, "wt") as fp:
     fp.write('__version__ = "%s"\n' % _version)
 
-dict_extra_requires = {
-    "build": ["Cython"],
-    "service": ["psutil", "pyjwt", "fastapi", "httpx", "uvicorn"],
-    "db": [
-        "sqlalchemy",
-        "psycopg[binary]",
-        "pymysql",
-        "elasticsearch",
-        "pymongo",
-        "redis",
-        "duckdb",
-        "duckdb-engine",
-        "oracledb",
-    ],
-    "stream": ["confluent_kafka"],
-    "data": ["pandas", "lxml"],
-    "report": ["openpyxl", "XlsxWriter"],
-    "test": ["pytest-cov"],
-    "docs": ["mkdocs", "mkdocstrings[python]", "markdown-include", "mkdocs-material"],
-}
-
-setup(
-    name="aloha",
-    version=_version,
-    author="LabNow.ai",
-    author_email="postmaster@labnow.ai",
-    license="Apache-2.0",
-    url="https://github.com/LabNow.ai/aloha-python",
-    project_urls={
-        "Source": "https://github.com/LabNow-ai/aloha-python",
-        "CI Pipeline": "https://github.com/LabNow-ai/aloha-python/actions",
-        "Documentation": "https://aloha-python.readthedocs.io/",
-    },
-    packages=find_packages(where=".", exclude=("app_common*",)),
-    include_package_data=True,
-    package_data={},
-    platforms="Linux, Mac OS X, Windows",
-    zip_safe=False,
-    install_requires=["attrdict3", "pyhocon", "pycryptodome", "packaging"],
-    extras_require={
-        **dict_extra_requires,
-        "all": sorted(y for x in dict_extra_requires.values() for y in x),
-    },
-    python_requires=">=3.10",
-    entry_points={"console_scripts": ["aloha = aloha.script.base:main"]},
-    data_files=[],
-    description="Aloha - a versatile Python utility package for building services",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    classifiers=[
-        "Intended Audience :: Developers",
-        "Intended Audience :: System Administrators",
-        "Intended Audience :: Science/Research",
-        "Programming Language :: Python :: 3",
-        "Operating System :: OS Independent",
-    ],
-)
+# 3. Trigger setup (reads configuration from pyproject.toml)
+setup()

@@ -133,3 +133,7 @@ dmypy.json
 
 # Agents
 .codex
+
+# Generated README inside package folder
+pkg/README.md
+

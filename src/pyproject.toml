@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "app-common"
+version = "0.1.0"
+description = "Aloha Application Common boilerplate"
+requires-python = ">=3.10"
+dependencies = [
+    # Core aloha dependencies
+    "attrdict3",
+    "pyhocon",
+    "pycryptodome",
+    "packaging",
+
+    # Extras: build
+    "Cython",
+
+    # Extras: service
+    "psutil",
+    "pyjwt",
+    "fastapi",
+    "httpx",
+    "uvicorn",
+
+    # Extras: db
+    "sqlalchemy",
+    "psycopg[binary]",
+    "pymysql",
+    "elasticsearch",
+    "pymongo",
+    "redis",
+    "duckdb",
+    "duckdb-engine",
+    "oracledb",
+
+    # Extras: stream
+    "confluent_kafka",
+
+    # Extras: data & report
+    "pandas",
+    "lxml",
+    "openpyxl",
+    "XlsxWriter",
+
+    # Extras: test & docs
+    "pytest-cov",
+    "mkdocs",
+    "mkdocstrings[python]",
+    "markdown-include",
+    "mkdocs-material",
+]

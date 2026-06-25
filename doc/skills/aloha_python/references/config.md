@@ -8,15 +8,15 @@ The `aloha.config` subpackage provides tools for discovering, loading, and parsi
 
 The configuration and startup behavior of an `aloha` application can be customized using the following environment variables:
 
-| Environment Variable | Default Value | Description |
-| :--- | :--- | :--- |
-| `ENV_PROFILE` | `None` (undefined) | Specifies the running profile (e.g., `DEV`, `STG`, `PRD`). Determines the configuration entry file (`main-${ENV_PROFILE}.conf`). |
-| `ENTRYPOINT` | `None` (undefined) | Specifies the default Python module entry point when running `aloha start`. The module must contain a `main()` function. |
-| `APP_MODULE` | `default` | Identifies the application/module name. Mapped to configuration key `APP_MODULE` and used as a prefix for the log file names. |
-| `DIR_LOG` | `logs` | The directory where log files are stored. |
-| `DIR_RESOURCE` | `resource` (under CWD) | Root directory containing non-code resources (e.g. assets, static data). |
-| `DIR_CONFIG` | `${DIR_RESOURCE}/config` | Directory where configuration files are located. |
-| `FILES_CONFIG` | `None` (undefined) | Comma-separated list of configuration filenames to load (e.g., `db.conf,server.conf`). If defined, it overrides `ENV_PROFILE`. |
+| Environment Variable | Default Value            | Description                                                                                                                      |
+| :------------------- | :----------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| `ENV_PROFILE`        | `None` (undefined)       | Specifies the running profile (e.g., `DEV`, `STG`, `PRD`). Determines the configuration entry file (`main-${ENV_PROFILE}.conf`). |
+| `ENTRYPOINT`         | `None` (undefined)       | Specifies the default Python module entry point when running `aloha start`. The module must contain a `main()` function.         |
+| `APP_MODULE`         | `default`                | Identifies the application/module name. Mapped to configuration key `APP_MODULE` and used as a prefix for the log file names.    |
+| `DIR_LOG`            | `logs`                   | The directory where log files are stored.                                                                                        |
+| `DIR_RESOURCE`       | `resource` (under CWD)   | Root directory containing non-code resources (e.g. assets, static data).                                                         |
+| `DIR_CONFIG`         | `${DIR_RESOURCE}/config` | Directory where configuration files are located.                                                                                 |
+| `FILES_CONFIG`       | `None` (undefined)       | Comma-separated list of configuration filenames to load (e.g., `db.conf,server.conf`). If defined, it overrides `ENV_PROFILE`.   |
 
 ---
 
@@ -25,6 +25,7 @@ The configuration and startup behavior of an `aloha` application can be customiz
 This module resolves paths for config directories, resource directories, and active configuration files.
 
 ### Key Functions
+
 - `get_resource_dir(*args) -> str`: Resolves the absolute path to the resource directory. Relies on the `DIR_RESOURCE` environment variable.
 - `get_config_dir(*args) -> str`: Resolves the absolute path to the configuration directory. Relies on the `DIR_CONFIG` environment variable.
 - `get_config_files() -> list`: Determines which HOCON configuration files should be loaded.
@@ -40,6 +41,7 @@ This module resolves paths for config directories, resource directories, and act
 This module uses the `pyhocon` library to parse configurations.
 
 ### Key Functions
+
 - `load_config_from_hocon(config_file: str) -> dict`: Parses a single HOCON file into a plain ordered dictionary.
 - `load_config_from_hocon_files(config_files: list, base_dir: str) -> AttrDict`: Generates a string containing HOCON `include required("<file>")` directives for each configuration file, parses it within the context of `base_dir`, and returns the merged configuration as an `AttrDict` object. This enables attribute-style dot access.
 
@@ -50,6 +52,7 @@ This module uses the `pyhocon` library to parse configurations.
 The `aloha.settings` module exports a global, pre-instantiated singleton `SETTINGS` of class `Settings`, which manages lazy loading of config files.
 
 ### Usage Example
+
 ```python
 from aloha.settings import SETTINGS
 

@@ -11,6 +11,7 @@ aloha compile --base=<source_dir> --dist=<output_dir> --keep='<files_to_keep>'
 ```
 
 ### Example
+
 ```bash
 aloha compile --base=./src --dist=./dist_build --keep='main.py'
 ```
@@ -47,9 +48,9 @@ Under the hood, `aloha compile` executes the following steps:
 
 ## 4. CLI Parameter Reference
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `--base` | string | `./` | Root folder containing the Python source code to compile. |
-| `--dist` | string | `build` | Destination directory where the final binary files and copied assets will be placed. |
-| `--exclude` | string list | `()` | A list of file or folder path glob patterns to exclude from being copied or compiled. |
-| `--keep` | string list | `()` | A list of specific `.py` files to keep as plain Python source code instead of compiling. |
+| Parameter   | Type        | Default | Description                                                                              |
+| :---------- | :---------- | :------ | :--------------------------------------------------------------------------------------- |
+| `--base`    | string      | `./`    | Root folder containing the Python source code to compile.                                |
+| `--dist`    | string      | `build` | Destination directory where the final binary files and copied assets will be placed.     |
+| `--exclude` | string list | `()`    | A list of file or folder path glob patterns to exclude from being copied or compiled.    |
+| `--keep`    | string list | `()`    | A list of specific `.py` files to keep as plain Python source code instead of compiling. |

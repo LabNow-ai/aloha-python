@@ -1,0 +1,93 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aloha"
+dynamic = ["version"]
+description = "Aloha - a versatile Python utility package for building services"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "LabNow.ai", email = "postmaster@labnow.ai"}
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "attrdict3",
+    "pyhocon",
+    "pycryptodome",
+    "packaging",
+]
+
+[project.urls]
+Homepage = "https://github.com/LabNow.ai/aloha-python"
+Source = "https://github.com/LabNow-ai/aloha-python"
+"CI Pipeline" = "https://github.com/LabNow-ai/aloha-python/actions"
+Documentation = "https://aloha-python.readthedocs.io/"
+
+[project.scripts]
+aloha = "aloha.script.base:main"
+
+[project.optional-dependencies]
+build = ["Cython"]
+service = ["psutil", "pyjwt", "fastapi", "httpx", "uvicorn"]
+db = [
+    "sqlalchemy",
+    "psycopg[binary]",
+    "pymysql",
+    "elasticsearch",
+    "pymongo",
+    "redis",
+    "duckdb",
+    "duckdb-engine",
+    "oracledb",
+]
+stream = ["confluent_kafka"]
+data = ["pandas", "lxml"]
+report = ["openpyxl", "XlsxWriter"]
+test = ["pytest-cov"]
+docs = ["mkdocs", "mkdocstrings[python]", "markdown-include", "mkdocs-material"]
+all = [
+    "Cython",
+    "psutil",
+    "pyjwt",
+    "fastapi",
+    "httpx",
+    "uvicorn",
+    "sqlalchemy",
+    "psycopg[binary]",
+    "pymysql",
+    "elasticsearch",
+    "pymongo",
+    "redis",
+    "duckdb",
+    "duckdb-engine",
+    "oracledb",
+    "confluent_kafka",
+    "pandas",
+    "lxml",
+    "openpyxl",
+    "XlsxWriter",
+    "pytest-cov",
+    "mkdocs",
+    "mkdocstrings[python]",
+    "markdown-include",
+    "mkdocs-material"
+]
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.dynamic]
+version = {attr = "aloha._version.__version__"}

@@ -37,5 +37,6 @@ mkdir -pv doc/skills .agents .claude \
 ```
 
 ### Integrated Workspace Layout
+
 - **Centralized Rules (`AGENTS.md`)**: The single source of truth for code styling, conventions, and constraints.
 - **Centralized Skills (`doc/skills/`)**: Symlinked dynamically to `.agents/skills`, `.claude/skills`, and `.github/skills`. All agents automatically share the same custom instructions.

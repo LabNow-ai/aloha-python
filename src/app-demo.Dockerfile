@@ -41,8 +41,8 @@ ENV ENTRYPOINT="app_common.debug"
 
 RUN set -eux && pwd && ls -alh \
  && source /opt/utils/script-localize.sh ${PROFILE_LOCALIZE} \
- && pip install -U --no-cache-dir pip \
- && ( [ -f ./requirements.txt ] && pip install -U --no-cache-dir -r ./requirements.txt || true ) && pip list  \
+ && pip install -U --no-cache-dir pip uv \
+ && ( [ -f ./pyproject.toml ] && uv pip install --system -r ./pyproject.toml || true ) && pip list  \
  && rm -rf ~/.cache && ls -al && printenv | sort
 
 VOLUME ${DIR_APP}/logs

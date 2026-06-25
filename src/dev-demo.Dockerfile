@@ -8,7 +8,7 @@ FROM ${BASE_NAMESPACE:+$BASE_NAMESPACE/}${BASE_IMG} AS dev
 
 ARG PROFILE_LOCALIZE
 
-COPY src/requirements.txt /tmp/
+COPY src/pyproject.toml /tmp/
 
 USER root
 RUN set -eux && pwd && ls -alh \
@@ -16,9 +16,11 @@ RUN set -eux && pwd && ls -alh \
  # ----------- handle frontend matters -----------
  && npm install -g pnpm \
  # ----------- handle backend matters ------------
- && pip install -U --no-cache-dir pip jupyterlab \
- && pip install -U --no-cache-dir -r /tmp/requirements.txt \
+ && pip install -U --no-cache-dir pip jupyterlab uv \
+ && uv pip install --system -r /tmp/pyproject.toml \
  # ----------- install db client to connect db via terminal ------------
  && source /opt/utils/script-setup-db-clients.sh && setup_postgresql_client 17 \
  # ----------- clean up -----------
  && source /opt/utils/script-utils.sh && list_installed_packages && install__clean
+
+CMD ["tail", "-f", "/dev/null"]

@@ -22,7 +22,6 @@ mkdocs:
 
 python:
   install:
-    - requirements: ./doc/requirements.txt
     - method: pip
       path: ./pkg
       extra_requirements:

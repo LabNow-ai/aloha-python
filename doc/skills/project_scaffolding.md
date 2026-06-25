@@ -16,6 +16,11 @@ The `aloha-python` repository is organized into several top-level directories, e
 
 - **`tool/`**: This directory contains development and CI/CD related scripts and Docker assets. This includes scripts for setting up the development environment, building Docker images, and managing the project lifecycle.
 
+- **`AGENTS.md`**: Centralized file containing project-wide guidelines, rules, and style constraints shared across various AI agents.
+- **`.agents/`**: Folder for Antigravity-specific customizations. The `skills/` subdirectory is symlinked to `doc/skills/` to load skills.
+- **`.claude/`**: Folder for Claude Code-specific configurations. The `skills/` subdirectory is symlinked to `doc/skills/` to provide skills/instructions.
+- **`.github/`**: Contains GitHub Actions workflows (`.github/workflows/`), Copilot instructions (`.github/copilot-instructions.md`, symlinked to `AGENTS.md`), and a symlink `.github/skills` to `../doc/skills`.
+
 ## 2. Using the Repository as a Boilerplate
 
 To initiate a new project using `aloha-python` as a boilerplate, follow these steps:
@@ -47,3 +52,30 @@ To initiate a new project using `aloha-python` as a boilerplate, follow these st
        ```
 
 By adhering to these conventions, AI agents can effectively understand, navigate, and contribute to projects built upon the `aloha-python` framework.
+
+## 4. Multi-Agent Setup and Scaffolding Script
+
+To facilitate cooperation and consistent behavior across multiple AI tools and agents (such as Antigravity/Gemini, Claude Code, and GitHub Copilot), the project uses a unified instruction layout. The following scaffolding script initializes this structure:
+
+```bash
+# Create scaffolding directories
+mkdir -pv .github/workflows doc/skills src/tests tool/cicd
+
+# Create agent config directories and symlink the centralized skills directory
+mkdir -pv doc/skills .agents .claude \
+&& touch AGENTS.md \
+&& ln -sf AGENTS.md CLAUDE.md \
+&& ln -sf ../AGENTS.md .github/copilot-instructions.md \
+&& ln -sf ../doc/skills .agents/ \
+&& ln -sf ../doc/skills .claude/ \
+&& ln -sf ../doc/skills .github/
+```
+
+### Key Components of the Multi-Agent Framework:
+- **Centralized Agent Rules (`AGENTS.md`)**:
+  - `AGENTS.md` is the single source of truth for guidelines, code style constraints, and project rules.
+  - `CLAUDE.md` is symlinked to `AGENTS.md` for Claude Code.
+  - `.github/copilot-instructions.md` is symlinked to `../AGENTS.md` for GitHub Copilot.
+- **Centralized Agent Skills (`doc/skills/`)**:
+  - Agent skills and instruction documents (like this one) are stored in the `doc/skills/` directory.
+  - Symlinks are created under `.agents/skills`, `.claude/skills`, and `.github/skills` pointing to `../doc/skills`. This ensures that all agents read the same skill instructions.

@@ -49,6 +49,18 @@ db = [
     "duckdb-engine",
     "oracledb",
 ]
+# Async database drivers for aio modules
+aio = [
+    "sqlalchemy[asyncio]",
+    "asyncpg",
+    "aiomysql",
+    "redis[hiredis]",
+    "motor",
+    "elasticsearch[async]",
+    "aiokafka",
+    "aiosqlite",
+    "aioduckdb",
+]
 stream = ["confluent_kafka"]
 data = ["pandas", "lxml"]
 report = ["openpyxl", "XlsxWriter"]
@@ -79,7 +91,17 @@ all = [
     "mkdocs",
     "mkdocstrings[python]",
     "markdown-include",
-    "mkdocs-material"
+    "mkdocs-material",
+    # Async database drivers
+    "sqlalchemy[asyncio]",
+    "asyncpg",
+    "aiomysql",
+    "redis[hiredis]",
+    "motor",
+    "elasticsearch[async]",
+    "aiokafka",
+    "aiosqlite",
+    "aioduckdb",
 ]
 
 [tool.setuptools]

@@ -1,3 +1,7 @@
+from typing import Any
+
+from attrdict import AttrDict
+
 from .config import hocon, paths
 
 
@@ -8,11 +12,14 @@ class Settings:
     Manages configuration loading and provides access to common directories.
     """
 
-    def __init__(self):
-        self._config = None
+    def __init__(self, config: Any | None = None):
+        if config is None:
+            self._config = None
+        else:
+            self.load_settings(config)
 
     @property
-    def resource_dir(self):
+    def dir_resource(self):
         """
         Get the resource directory path.
 
@@ -21,13 +28,22 @@ class Settings:
         return paths.get_resource_dir()
 
     @property
-    def config_dir(self):
+    def dir_config(self):
         """
         Get the configuration directory path.
 
         :return: Config directory path
         """
         return paths.get_config_dir()
+
+    def load_settings(self, config: Any) -> Any:
+        if isinstance(config, dict):
+            self._config = AttrDict({key: self.load_settings(value) for key, value in config.items()})
+        elif isinstance(config, list):
+            self._config = [self.load_settings(value) for value in config]
+        else:
+            raise ValueError("Unsupported config type: %s" % str(type(config)))
+        return self._config
 
     @property
     def config(self):

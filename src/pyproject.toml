@@ -37,6 +37,7 @@ dependencies = [
 
     # Extras: stream
     "confluent_kafka",
+    "aiokafka",
 
     # Extras: data & report
     "pandas",

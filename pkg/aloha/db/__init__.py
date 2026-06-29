@@ -53,27 +53,100 @@ Usage example (async):
 
 # Sync modules
 from .base import PasswordVault
-from .postgres import PostgresOperator
-from .mysql import MySqlOperator
-from .redis import RedisOperator
-from .mongo import MongoOperator
-from .elasticsearch import ElasticSearchOperator
-from .kafka import KafkaOperator
-from .sqlite import SqliteOperator
-from .duckdb import DuckOperator
-from .oracle import OracledbOperator
+
+try:
+    from .postgres import PostgresOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .mysql import MySqlOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .redis import RedisOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .mongo import MongoOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .elasticsearch import ElasticSearchOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .kafka import KafkaOperator, ConsumedMessage
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .sqlite import SqliteOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .duckdb import DuckOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .oracle import OracledbOperator
+except (ImportError, ModuleNotFoundError):
+    pass
+
 
 # Async modules (importable as aliases for easy switching)
 from .base_aio import PasswordVault as PasswordVaultAio
-from .postgres_aio import PostgresOperator as PostgresOperatorAio
-from .mysql_aio import MySqlOperator as MySqlOperatorAio
-from .redis_aio import RedisOperator as RedisOperatorAio
-from .mongo_aio import MongoOperator as MongoOperatorAio
-from .elasticsearch_aio import ElasticSearchOperator as ElasticSearchOperatorAio
-from .kafka_aio import KafkaOperator as KafkaOperatorAio
-from .sqlite_aio import SqliteOperator as SqliteOperatorAio
-from .duckdb_aio import DuckOperator as DuckOperatorAio
-from .oracle_aio import OracledbOperator as OracledbOperatorAio
+
+try:
+    from .postgres_aio import PostgresOperator as PostgresOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .mysql_aio import MySqlOperator as MySqlOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .redis_aio import RedisOperator as RedisOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .mongo_aio import MongoOperator as MongoOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .elasticsearch_aio import ElasticSearchOperator as ElasticSearchOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .kafka_aio import KafkaOperator as KafkaOperatorAio, ConsumedMessage as ConsumedMessageAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .sqlite_aio import SqliteOperator as SqliteOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .duckdb_aio import DuckOperator as DuckOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
+
+try:
+    from .oracle_aio import OracledbOperator as OracledbOperatorAio
+except (ImportError, ModuleNotFoundError):
+    pass
 
 __all__ = (
     # Sync operators
@@ -83,6 +156,7 @@ __all__ = (
     "MongoOperator",
     "ElasticSearchOperator",
     "KafkaOperator",
+    "ConsumedMessage",
     "SqliteOperator",
     "DuckOperator",
     "OracledbOperator",
@@ -94,6 +168,7 @@ __all__ = (
     "MongoOperatorAio",
     "ElasticSearchOperatorAio",
     "KafkaOperatorAio",
+    "ConsumedMessageAio",
     "SqliteOperatorAio",
     "DuckOperatorAio",
     "OracledbOperatorAio",

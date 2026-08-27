@@ -13,9 +13,9 @@ This skill provides coding standards, modular application structures, and usage 
 
 When developing Python code in this codebase, adhere to the following naming conventions:
 
-- **Primary Type/First-Class Identity Prefix**: Place the variable's type, role, or primary characteristics first in its name.
-  - _Correct_: `name_service`, `port_service`, `svc_ingress`, `cfg_postgres`.
-  - _Incorrect_: `service_name`, `service_port`, `ingress_service`, `postgres_config`.
+- **Primary Type/First-Class Identity Prefix**: Place the variable's type, role, or primary characteristics first in its name. If multiple variables in a segment of code belong to the same category, type, or semantic group, place the common semantic prefix first.
+  - _Correct_: `name_service`, `port_service`, `svc_ingress`, `cfg_postgres`, `db_mysql`, `msg_err`, `msg_info`.
+  - _Incorrect_: `service_name`, `service_port`, `ingress_service`, `postgres_config`, `mysql_db`, `err_msg`, `info_msg`.
 - **Logger naming**: Use lowercase with underscores for logger names, e.g., `db_sync`.
 
 ---

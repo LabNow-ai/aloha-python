@@ -17,13 +17,13 @@ class ServiceTestCase(UnitTestCase, ABC, APICaller):
         """Class method to test an API call
 
         :param api_url: do NOT start with slash (/)
-        :param timeout: requests timeout in seconds
+        :param timeout: httpx2 timeout in seconds
         :param kwargs: request data
         :return:
         """
         url = "http://localhost:%s/%s" % (cls.api_url_port, api_url)
         # cls.LOG.debug("POST %s  %s" % (url, json.dumps(kwargs, ensure_ascii=False, sort_keys=True)))
-        # resp = requests.post(
+        # resp = httpx2.post(
         #     url, json=kwargs, timeout=timeout, headers={'Content-Type': 'application/json'}
         # ).json()
         # cls.LOG.debug(resp)

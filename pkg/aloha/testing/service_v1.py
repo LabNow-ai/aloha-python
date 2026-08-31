@@ -1,7 +1,7 @@
 import json
 from abc import ABC
 
-import requests
+import httpx2
 
 from aloha.service.api.v1 import APICaller
 
@@ -20,13 +20,13 @@ class ServiceTestCase(UnitTestCase, ABC, APICaller):
         """Class method to test an API call
 
         :param api_url: do NOT starts with slash (/)
-        :param timeout: requests timeout in seconds
+        :param timeout: httpx2 timeout in seconds
         :param kwargs: request data
         :return:
         """
         payload = cls.wrap_request_data(data=kwargs)
         url = "http://localhost:%s/%s" % (cls.api_url_base, api_url)
         cls.LOG.debug("POST %s  %s" % (url, json.dumps(payload, ensure_ascii=False, sort_keys=True)))
-        resp = requests.post(url, json=payload, timeout=timeout, headers={"Content-Type": "application/json"}).json()
+        resp = httpx2.post(url, json=payload, timeout=timeout, headers={"Content-Type": "application/json"}).json()
         cls.LOG.debug(resp)
         return resp

@@ -1,17 +1,17 @@
-"""Base HTTP client helpers for aloha API clients using httpx."""
+"""Base HTTP client helpers for aloha API clients using httpx2."""
 
 import uuid
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
 
-import httpx
+import httpx2
 
 from ...logger import LOG
 from ...settings import SETTINGS
 
 
 class AbstractApiClient(ABC):
-    """Common client behavior for aloha HTTP APIs using httpx."""
+    """Common client behavior for aloha HTTP APIs using httpx2."""
 
     LOG = LOG
     RETRY_METHOD_WHITELIST: frozenset = frozenset(["GET", "POST"])
@@ -23,10 +23,10 @@ class AbstractApiClient(ABC):
         self.url_endpoint = url_endpoint or ""
         LOG.debug("API Caller URL endpoint set to: %s" % self.url_endpoint)
 
-    def get_http_client(self, total_retries: int = 3, *args, **kwargs) -> httpx.AsyncClient:
-        """Create an httpx async client with retry support via custom transport."""
+    def get_http_client(self, total_retries: int = 3, *args, **kwargs) -> httpx2.AsyncClient:
+        """Create an httpx2 async client with retry support via custom transport."""
         # Create a custom transport that retries on specific status codes
-        from httpx import AsyncClient, Limits, Timeout
+        from httpx2 import AsyncClient, Limits, Timeout
 
         # Configure retry policy
         limits = Limits(max_keepalive_connections=20, max_connections=100, keepalive_expiry=30)

@@ -1,8 +1,8 @@
-"""Helpers for handling multipart upload files and remote file inputs using httpx."""
+"""Helpers for handling multipart upload files and remote file inputs using httpx2."""
 
 import time
 
-import httpx
+import httpx2
 
 from ...logger import LOG
 
@@ -33,7 +33,7 @@ async def iter_over_request_files(request, url_files):
         for url in sorted(set(list_url)):
             try:
                 t_start = time.time()
-                async with httpx.AsyncClient(follow_redirects=True) as client:
+                async with httpx2.AsyncClient(follow_redirects=True) as client:
                     resp = await client.get(url)
                     if resp.status_code == 200:
                         body = resp.content
@@ -53,7 +53,7 @@ async def iter_over_request_files(request, url_files):
 def iter_over_request_files_sync(request, url_files):
     """Synchronous version of iter_over_request_files for backward compatibility.
 
-    This is a sync wrapper that uses httpx sync client.
+    This is a sync wrapper that uses httpx2 sync client.
     """
 
     # Handle multipart uploaded files (from FastAPI form data)
@@ -78,7 +78,7 @@ def iter_over_request_files_sync(request, url_files):
         for url in sorted(set(list_url)):
             try:
                 t_start = time.time()
-                with httpx.Client(follow_redirects=True) as client:
+                with httpx2.Client(follow_redirects=True) as client:
                     resp = client.get(url)
                     if resp.status_code == 200:
                         body = resp.content

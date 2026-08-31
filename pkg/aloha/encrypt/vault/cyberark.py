@@ -4,17 +4,13 @@ import hashlib
 from binascii import a2b_hex
 from urllib.parse import quote_plus as urlquote
 
-import requests
+import httpx2
 from Crypto.Cipher import AES
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from ...encrypt.aes import AesEncryptor
 from ...logger import LOG
 from .base import BaseVault
 
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-if hasattr(requests.packages.urllib3.util.ssl_, "DEFAULT_CIPHERS"):
-    requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += ":HIGHT:!DH:!aNULL"
 
 
 class CyberArkVault(BaseVault, AesEncryptor):
@@ -63,7 +59,7 @@ class CyberArkVault(BaseVault, AesEncryptor):
         while retry:
             try:
                 LOG.debug("POST CyberArk: %s with data: %s", self.url, data)
-                resp = requests.post(
+                resp = httpx2.post(
                     self.url,
                     json=data,
                     headers={"Content-Type": "application/json"},

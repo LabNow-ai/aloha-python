@@ -49,9 +49,8 @@ Usage example (async):
 
     import asyncio
     asyncio.run(main())
-"""
 
-# Sync modules
+
 from .base import PasswordVault
 
 try:
@@ -175,3 +174,4 @@ __all__ = (
     "SqliteOperator",
     "SqliteOperatorAio",
 )
+"""

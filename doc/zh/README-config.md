@@ -2,14 +2,18 @@
 
 ## 操作系统环境变量
 
-### `ENV_PROFILE`
+### `PROFILE_ENV`
 
 *默认值*：`None`（未定义）。
 
 用于指定当前进程运行环境，例如 `DEV | STG | PRD`。
 通常用于决定 `${DIR_CONFIG}` 下哪个配置文件作为入口配置。
 
-如果该变量已定义，`aloha` 会优先查找 `main-${ENV_PROFILE}.conf`；否则使用 `main.conf`。
+如果该变量已定义，`aloha` 会优先查找 `main-${PROFILE_ENV}.conf`；否则使用 `main.conf`。
+
+> [!NOTE]
+> **向后兼容与弃用说明**：
+> 如果 `PROFILE_ENV` 未定义或无值，`aloha` 会回退读取旧版环境变量 `ENV_PROFILE`。若检测到 `ENV_PROFILE` 有值，系统将输出 `DeprecationWarning` 弃用警告。`ENV_PROFILE` 已被弃用，并且在将来版本中会正式取消支持。请尽快迁移使用 `PROFILE_ENV`。
 
 ### `ENTRYPOINT`
 
@@ -49,4 +53,4 @@
 *默认值*：`None`（未定义）。
 
 可选项。用于定义以英文逗号分隔的配置文件列表。
-如果该变量存在，则会忽略 `ENV_PROFILE`。
+如果该变量存在，则会忽略 `PROFILE_ENV`（及旧版 `ENV_PROFILE`）。

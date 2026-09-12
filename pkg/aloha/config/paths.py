@@ -60,17 +60,35 @@ def get_config_files() -> list:
     1. The function will look up the `FILES_CONFIG` environment variable to get a list of file names seperated by comma, if specified;
     2. In case `FILES_CONFIG` is not specified, the function will use the default config file;
     3. The default config file is determined by:
-       (a) If environment variable `ENV_PROFILE` is defined, the entry file will be "main-{ENV_PROFILE}.conf"
-       (b) If environment variable `ENV_PROFILE` is not defined, the entry config file will be "main.conf".
+       (a) If environment variable `PROFILE_ENV` is defined, the entry file will be "main-{PROFILE_ENV}.conf"
+       (b) If `PROFILE_ENV` is not defined, fallback to `ENV_PROFILE` (deprecated, support will be removed in a future release);
+       (c) If neither is defined, the entry config file will be "main.conf".
     :return: list of string, which are file names of config files
     """
     files_config = os.environ.get("FILES_CONFIG", None)
     if files_config is None:
-        env_profile = os.environ.get("ENV_PROFILE", None)
-        if env_profile is None:
+        profile_env = os.environ.get("PROFILE_ENV")
+        if profile_env is not None and len(profile_env.strip()) == 0:
+            profile_env = None
+
+        if profile_env is None:
+            env_profile = os.environ.get("ENV_PROFILE")
+            if env_profile is not None and len(env_profile.strip()) == 0:
+                env_profile = None
+
+            if env_profile is not None:
+                warnings.warn(
+                    "The 'ENV_PROFILE' environment variable is deprecated and will be removed in a future release. "
+                    "Please use 'PROFILE_ENV' instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                profile_env = env_profile
+
+        if profile_env is None:
             files_config = "main.conf"
         else:
-            files_config = "main-%s.conf" % env_profile
+            files_config = "main-%s.conf" % profile_env
 
     files = files_config.split(",")
     ret = []

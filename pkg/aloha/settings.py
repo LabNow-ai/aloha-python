@@ -77,7 +77,7 @@ class Settings:
         Get the global configuration object.
 
         Lazily loads and parses configuration files on first access. It resolves active
-        HOCON configuration files based on the `FILES_CONFIG` or `ENV_PROFILE` environment
+        HOCON configuration files based on the `FILES_CONFIG` or `PROFILE_ENV` (or legacy `ENV_PROFILE`) environment
         variables, falls back to `main.conf` if not specified, and merges them into an `AttrDict`.
 
         :return: Merged global configuration settings as an AttrDict.

@@ -22,7 +22,7 @@ Please generously STAR★ our project or donate to us!
 
 ## 🚀 Key Features
 
-- **Configuration Management (`aloha.config`)**: Lazy-loaded settings (`SETTINGS`) using HOCON (Human-Optimized Config Object Notation), supporting environment profile overrides (`ENV_PROFILE` / `FILES_CONFIG`) and environment variable injection.
+- **Configuration Management (`aloha.config`)**: Lazy-loaded settings (`SETTINGS`) using HOCON (Human-Optimized Config Object Notation), supporting environment profile overrides (`PROFILE_ENV` / `FILES_CONFIG`, with legacy `ENV_PROFILE` deprecated) and environment variable injection.
 - **Concurrent-Safe Logging (`aloha.logger`)**: Multi-process safe daily rotating log file handler, console output, and automatic log paths configuration.
 - **Database Operators (`aloha.db`)**: Pre-built SQLAlchemy-backed connections for PostgreSQL, MySQL, SQLite, DuckDB, MongoDB, Redis, Elasticsearch, and Kafka, with password resolution via a secure `PasswordVault` wrapper.
 - **Encryption & Utilities (`aloha.encrypt`)**: Fast helpers for AES (ECB/CBC) encryption, RSA asymmetric key-pair generation/signatures, JWT encoding/decoding, and Base62 hashing.

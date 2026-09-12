@@ -14,7 +14,7 @@
 Please generously STAR★ our project or donate to us!
 [![GitHub Starts](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
-- To understand the package, read the [📚docs](https://aloha-python.readthedocs.io/) or [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/LabNow-ai/lab-foundation)
+- To understand the package, read the [📚docs](https://aloha-python.readthedocs.io/) or [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/LabNow-ai/aloha-python)
 
 - To contribute or talk to a human: [![Open an Issue on GitHub](https://img.shields.io/github/issues/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/issues) [![Join the Discord Chat](https://img.shields.io/badge/Discuss_on-Discord-green)](https://discord.gg/kHUzgQxgbJ) [![Join the Gitter Chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/LabNow-ai/)
 

@@ -1,8 +1,8 @@
-"""Helpers for handling multipart upload files and remote file inputs using httpx."""
+"""Helpers for handling multipart upload files and remote file inputs using httpx2."""
 
 import time
 
-import httpx
+import httpx2
 
 from ...logger import LOG
 
@@ -31,20 +31,16 @@ async def iter_over_request_files(request, url_files):
     # Handle files from URL
     for file_key, list_url in {"url_files": url_files or []}.items():
         for url in sorted(set(list_url)):
-            try:
-                t_start = time.time()
-                async with httpx.AsyncClient(follow_redirects=True) as client:
-                    resp = await client.get(url)
-                    if resp.status_code == 200:
-                        body = resp.content
-                        content_type = resp.headers.get("Content-Type", "UNKNOWN")
-                    else:
-                        raise RuntimeError(
-                            "Failed to download file after %s seconds with code=%s from URL %s"
-                            % (time.time() - t_start, resp.status_code, url)
-                        )
-            except Exception as e:
-                raise e
+            t_start = time.time()
+            async with httpx2.AsyncClient(follow_redirects=True) as client:
+                resp = await client.get(url)
+                if resp.status_code == 200:
+                    body = resp.content
+                    content_type = resp.headers.get("Content-Type", "UNKNOWN")
+                else:
+                    raise RuntimeError(
+                        f"Failed to download file after {time.time() - t_start} seconds with code={resp.status_code} from URL {url}"
+                    )
             t_cost = time.time() - t_start
             LOG.info(f"File {url} has content type {content_type} and length bytes={len(body)}, downloaded in {t_cost} seconds")
             yield "url_files", url, content_type, body
@@ -53,7 +49,7 @@ async def iter_over_request_files(request, url_files):
 def iter_over_request_files_sync(request, url_files):
     """Synchronous version of iter_over_request_files for backward compatibility.
 
-    This is a sync wrapper that uses httpx sync client.
+    This is a sync wrapper that uses httpx2 sync client.
     """
 
     # Handle multipart uploaded files (from FastAPI form data)
@@ -76,20 +72,16 @@ def iter_over_request_files_sync(request, url_files):
     # Handle files from URL
     for file_key, list_url in {"url_files": url_files or []}.items():
         for url in sorted(set(list_url)):
-            try:
-                t_start = time.time()
-                with httpx.Client(follow_redirects=True) as client:
-                    resp = client.get(url)
-                    if resp.status_code == 200:
-                        body = resp.content
-                        content_type = resp.headers.get("Content-Type", "UNKNOWN")
-                    else:
-                        raise RuntimeError(
-                            "Failed to download file after %s seconds with code=%s from URL %s"
-                            % (time.time() - t_start, resp.status_code, url)
-                        )
-            except Exception as e:
-                raise e
+            t_start = time.time()
+            with httpx2.Client(follow_redirects=True) as client:
+                resp = client.get(url)
+                if resp.status_code == 200:
+                    body = resp.content
+                    content_type = resp.headers.get("Content-Type", "UNKNOWN")
+                else:
+                    raise RuntimeError(
+                        f"Failed to download file after {time.time() - t_start} seconds with code={resp.status_code} from URL {url}"
+                    )
             t_cost = time.time() - t_start
             LOG.info(f"File {url} has content type {content_type} and length bytes={len(body)}, downloaded in {t_cost} seconds")
             yield "url_files", url, content_type, body

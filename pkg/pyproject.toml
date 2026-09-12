@@ -37,7 +37,7 @@ aloha = "aloha.script.base:main"
 
 [project.optional-dependencies]
 build = ["Cython"]
-service = ["psutil", "pyjwt", "fastapi", "httpx", "uvicorn"]
+service = ["psutil", "pyjwt", "fastapi", "httpx2", "uvicorn"]
 db = [
     "sqlalchemy",
     "psycopg[binary]",
@@ -59,7 +59,7 @@ all = [
     "psutil",
     "pyjwt",
     "fastapi",
-    "httpx",
+    "httpx2",
     "uvicorn",
     "sqlalchemy",
     "psycopg[binary]",

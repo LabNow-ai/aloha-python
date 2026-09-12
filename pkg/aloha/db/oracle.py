@@ -9,7 +9,7 @@ from .base import PasswordVault
 
 __all__ = ("OracledbOperator",)
 
-LOG.debug("oracledb version = %s" % oracledb.__version__)
+LOG.debug(f"oracledb version = {oracledb.__version__}")
 
 
 class OracledbOperator:
@@ -42,10 +42,10 @@ class OracledbOperator:
         if "lib_dir" in db_config:  # use Thick mode
             try:
                 oracledb.init_oracle_client(lib_dir=db_config["lib_dir"])
-                LOG.info("Oracle client initialized in THICK mode from: %s" % db_config["lib_dir"])
+                LOG.info("Oracle client initialized in THICK mode from: {}".format(db_config["lib_dir"]))
             except Exception as e:
                 LOG.warning(f"Warning: {e}")
-                raise RuntimeError(f"Failed to initialize Oracle client: {e}")
+                raise RuntimeError(f"Failed to initialize Oracle client: {e}") from e
 
         service_name = db_config.get("service_name")
         sid = db_config.get("sid")
@@ -71,7 +71,7 @@ class OracledbOperator:
             print(msg)
         except Exception as e:
             LOG.error(e)
-            raise RuntimeError("Failed to connect to OracleDB")
+            raise RuntimeError("Failed to connect to OracleDB") from e
 
     @property
     def connection(self):

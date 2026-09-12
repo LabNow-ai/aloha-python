@@ -16,7 +16,7 @@
 
 ## Time Utilities (`aloha.util.time`)
 
-This module provides tools for wrapping function calls (such as HTTP requests via `requests` or `httpx`) with time constraints (timeouts), allowing execution of optional callbacks upon completion or failure.
+This module provides tools for wrapping function calls (such as HTTP requests via `httpx2`) with time constraints (timeouts), allowing execution of optional callbacks upon completion or failure.
 
 ### Key Functions
 - `run_with_timeout`: Wrap a synchronous function call with a timeout.
@@ -25,7 +25,7 @@ This module provides tools for wrapping function calls (such as HTTP requests vi
 ### Usage Example
 ```python
 from aloha.util.time import run_with_timeout
-import requests
+import httpx2
 
 def success_callback(response):
     print("Request succeeded:", response.status_code)
@@ -36,7 +36,7 @@ def fail_callback(exception):
 # Synchronous call with timeout
 try:
     run_with_timeout(
-        requests.get,
+        httpx2.get,
         2.5,  # 2.5 seconds timeout
         "https://httpbin.org/delay/1",
         fn_callback_success=success_callback,

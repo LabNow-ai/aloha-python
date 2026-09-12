@@ -9,7 +9,7 @@ from ..logger import LOG
 try:
     import uvloop
 
-    LOG.info("Using uvloop == %s for service event loop..." % uvloop.__version__)
+    LOG.info(f"Using uvloop == {uvloop.__version__} for service event loop...")
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ImportError:
     LOG.info("[uvloop] NOT installed, fallback to asyncio loop! Consider `pip install uvloop`!")
@@ -61,7 +61,7 @@ class Application:
             LOG.info("Service interrupted by user")
         except Exception as e:
             LOG.error("Service error: %s", str(e))
-            raise e
+            raise
 
     def stop(self):
         """Stop the server if it is currently running."""

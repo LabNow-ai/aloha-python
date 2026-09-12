@@ -8,8 +8,8 @@ generations while adding header-based authentication.
 import json
 import logging
 from abc import ABC
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
@@ -20,13 +20,13 @@ from ...settings import SETTINGS
 from ..http import AbstractApiClient
 from ..http.base_api_handler import AbstractApiHandler as BaseHandler
 
-__all__ = ("APIHandler", "APICaller", "create_v2_router", "verify_v2_token")
+__all__ = ("APICaller", "APIHandler", "create_v2_router", "verify_v2_token")
 
 
 class APIHandler(BaseHandler, ABC):
     """Token-authenticated API handler for v2 endpoints."""
 
-    async def prepare(self) -> Optional[Response]:
+    async def prepare(self) -> Response | None:
         """Validate the access token before handling the request."""
         access_token = self._request.headers.get("Access-Token")
         if access_token is None:
@@ -36,7 +36,7 @@ class APIHandler(BaseHandler, ABC):
             options = {"verify_exp": False}
             access_token = jwt.decode(secret_key, access_token, options=options)
             if not isinstance(access_token, dict):
-                msg = "Invalid Access-Token found in request for [%s]: %s" % (str(self._request.url), access_token)
+                msg = f"Invalid Access-Token found in request for [{self._request.url!s}]: {access_token}"
                 self.LOG.error(msg)
                 return self.finish({"msg": msg})
         return None
@@ -48,13 +48,13 @@ class APIHandler(BaseHandler, ABC):
         try:
             if self.LOG.level == logging.DEBUG:
                 s_kwargs = json.dumps(kwargs, ensure_ascii=False)
-                self.LOG.debug("POST Request [%s]: %s" % (self.request_id, s_kwargs[:1000]))
+                self.LOG.debug(f"POST Request [{self.request_id}]: {s_kwargs[:1000]}")
             self.api_args, self.api_kwargs = args or (), kwargs or {}
             resp = self.response(*self.api_args, **self.api_kwargs)
         except Exception as e:
-            self.LOG.info("POST Request [%s]: %s" % (self.request_id, self._request._body))
+            self.LOG.info(f"POST Request [{self.request_id}]: {self._request._body}")
             msgs = ["An internal error has occurred!", str(e)]
-            self.LOG.error(e, exc_info=True)
+            self.LOG.exception("Error processing POST request")
             return self.finish({"status": "error", "message": msgs})
 
         return self.finish(resp)
@@ -64,19 +64,19 @@ class APIHandler(BaseHandler, ABC):
         query_arguments = self.request_param
         kwargs.update(query_arguments)
         try:
-            self.LOG.debug("GET Request [%s]: %s" % (self.request_id, kwargs))
+            self.LOG.debug(f"GET Request [{self.request_id}]: {kwargs}")
             self.api_args, self.api_kwargs = args or (), kwargs or {}
             resp = self.response(*self.api_args, **self.api_kwargs)
         except Exception as e:
-            self.LOG.info("GET Request [%s]: %s" % (self.request_id, kwargs))
+            self.LOG.info(f"GET Request [{self.request_id}]: {kwargs}")
             msgs = ["An internal error has occurred!", str(e)]
-            self.LOG.error(e, exc_info=True)
+            self.LOG.exception("Error processing GET request")
             return self.finish({"status": "error", "message": msgs})
 
         return self.finish(resp)
 
 
-def verify_v2_token(request: Request) -> Optional[Dict[str, Any]]:
+def verify_v2_token(request: Request) -> dict[str, Any] | None:
     """Dependency to verify v2 access token.
 
     Returns the decoded token payload if valid, otherwise raises HTTPException.
@@ -96,9 +96,11 @@ def verify_v2_token(request: Request) -> Optional[Dict[str, Any]]:
         if not isinstance(payload, dict):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access-Token!")
         return payload
+    except HTTPException:
+        raise
     except Exception as e:
-        LOG.error(str(e), exc_info=True)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access-Token!")
+        LOG.exception("Error validating v2 token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access-Token!") from e
 
 
 def create_v2_router(handler_class):
@@ -111,39 +113,39 @@ def create_v2_router(handler_class):
         Tuple of (handle_post, handle_get) functions for the routes
     """
 
-    async def handle_post(request: Request, token_payload: Dict = Depends(verify_v2_token)):
+    async def handle_post(request: Request, token_payload: Annotated[dict, Depends(verify_v2_token)]):
         handler = handler_class()
         handler._request = request
 
         try:
             body = await request.json()
-        except Exception:
+        except (json.JSONDecodeError, ValueError):
             body = {}
 
         kwargs = body
         try:
             if handler.LOG.level == logging.DEBUG:
                 s_kwargs = json.dumps(kwargs, ensure_ascii=False)
-                handler.LOG.debug("POST Request [%s]: %s" % (handler.request_id, s_kwargs[:1000]))
+                handler.LOG.debug(f"POST Request [{handler.request_id}]: {s_kwargs[:1000]}")
 
             resp = handler.response(**kwargs)
         except Exception as e:
-            handler.LOG.error(e, exc_info=True)
+            handler.LOG.exception("Error in handle_post")
             msgs = ["An internal error has occurred.", str(e)]
             return JSONResponse({"status": "error", "message": msgs}, status_code=500)
 
         return handler.finish(resp)
 
-    async def handle_get(request: Request, token_payload: Dict = Depends(verify_v2_token)):
+    async def handle_get(request: Request, token_payload: Annotated[dict, Depends(verify_v2_token)]):
         handler = handler_class()
         handler._request = request
 
         kwargs = dict(request.query_params)
         try:
-            handler.LOG.debug("GET Request [%s]: %s" % (handler.request_id, kwargs))
+            handler.LOG.debug(f"GET Request [{handler.request_id}]: {kwargs}")
             resp = handler.response(**kwargs)
         except Exception as e:
-            handler.LOG.error(e, exc_info=True)
+            handler.LOG.exception("Error in handle_get")
             msgs = ["An internal error has occurred.", repr(e)]
             return JSONResponse({"status": "error", "message": msgs}, status_code=500)
 
@@ -163,12 +165,12 @@ class APICaller(AbstractApiClient):
         assert isinstance(data, dict), "Data object must be a dict!"
         return data
 
-    def get_headers(self, app_id: str = None, app_key: str = None) -> dict:
+    def get_headers(self, app_id: str | None = None, app_key: str | None = None) -> dict:
         """Build the HTTP headers expected by v2 handlers."""
         if app_id is None:
-            app_id = list(self.APP_ID_KEYS.keys())[0]
+            app_id = next(iter(self.APP_ID_KEYS.keys()))
 
-        expire_time = datetime.now() + timedelta(days=1)
+        expire_time = datetime.now(tz=timezone.utc) + timedelta(days=1)
 
         access_token = jwt.encode(secret_key=self.APP_SECRET_KEY, payload={"exp": int(expire_time.timestamp()), "aid": app_id})
 

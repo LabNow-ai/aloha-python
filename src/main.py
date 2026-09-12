@@ -8,11 +8,11 @@ Usage: python3 main.py module.name
 
 if len(sys.argv) < 2:
     print(usage)
-    exit(-1)
+    sys.exit(-1)
 
 sys.argv.pop(0)
 m = importlib.import_module(sys.argv[0])
-f_main = getattr(m, "main")
+f_main = m.main
 
 if f_main is None:
     print("Given module does not provides a `main()` function!")

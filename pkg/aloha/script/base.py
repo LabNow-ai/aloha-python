@@ -12,19 +12,19 @@ def main():
     args, _ = parser.parse_known_args()
 
     cmd = args.cmd
-    module = "%s.%s" % (__package__, cmd)
+    module = f"{__package__}.{cmd}"
     try:
         module = importlib.import_module(module)
     except ImportError as e:
-        print("Invalid sub-command: %s\n\tFailed to import: %s" % (cmd, module))
+        print(f"Invalid sub-command: {cmd}\n\tFailed to import: {module}")
         print(str(e))
-        exit(-1)
+        sys.exit(-1)
 
     sys.argv.pop(0)
-    print("aloha command options: %s" % "".join(sys.argv))
-    func_main = getattr(module, "main")
+    print("aloha command options: {}".format("".join(sys.argv)))
+    func_main = module.main
 
-    exit(func_main())
+    sys.exit(func_main())
 
 
 if __name__ == "__main__":

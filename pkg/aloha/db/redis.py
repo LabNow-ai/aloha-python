@@ -42,8 +42,8 @@ class RedisOperator:
             ver_cur = version.parse(redis.__version__)
             if ver_cur >= ver_min:
                 valid = True
-                LOG.debug("Using redis version = %s" % redis.__version__)
-        except Exception as e:
+                LOG.debug(f"Using redis version = {redis.__version__}")
+        except Exception as e:  # noqa: BLE001
             LOG.error("Failed to obtain redis version!")
             LOG.error(str(e))
 

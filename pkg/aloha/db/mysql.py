@@ -9,7 +9,7 @@ from .base import PasswordVault
 
 __all__ = ("MySqlOperator",)
 
-LOG.debug("Version of pymysql = %s" % pymysql.__version__)
+LOG.debug(f"Version of pymysql = {pymysql.__version__}")
 
 
 class MySqlOperator:
@@ -37,7 +37,7 @@ class MySqlOperator:
             LOG.debug("MySQL connected: {host}:{port}/{dbname}".format(**self._config))
         except Exception as e:
             LOG.exception(e)
-            raise RuntimeError("Failed to connect to MySQL")
+            raise RuntimeError("Failed to connect to MySQL") from e
 
     @property
     def connection(self):

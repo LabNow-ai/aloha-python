@@ -4,7 +4,7 @@ import jwt
 
 from ..logger import LOG
 
-LOG.debug("Using pyjwt == %s" % str(jwt.__version__))
+LOG.debug(f"Using pyjwt == {jwt.__version__!s}")
 
 
 def encode(secret_key: str, payload: dict, headers: dict | None = None, **kwargs):

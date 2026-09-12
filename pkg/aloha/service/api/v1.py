@@ -8,6 +8,7 @@ import json
 import logging
 import uuid
 from abc import ABC
+from typing import ClassVar
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -17,7 +18,7 @@ from ...settings import SETTINGS
 from ..http import AbstractApiClient
 from ..http.base_api_handler import AbstractApiHandler as BaseHandler
 
-__all__ = ("APIHandler", "APICaller", "sign_data", "sign_check", "create_v1_router")
+__all__ = ("APICaller", "APIHandler", "create_v1_router", "sign_check", "sign_data")
 
 APP_ID_KEYS = SETTINGS.config.get("APP_ID_KEYS", {})
 APP_OPTIONS = SETTINGS.config.get("APP_OPTIONS", {})
@@ -28,7 +29,7 @@ func_sign_check_default = FUNC_SIGN_CHECK.get(APP_OPTIONS.get("sign_method", "md
 class APIHandler(BaseHandler, ABC):
     """Signed API handler for v1 endpoints."""
 
-    MAP_ERROR_INFO = {
+    MAP_ERROR_INFO: ClassVar[dict] = {
         "BAD_REQUEST": {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]},
         "MISSING_ARGS": {"code": "5102", "message": ["Required argument field(s) missing..."]},
         "SIGN_CHECK_FAIL": {"code": "5104", "message": ["Invalid sign, sign check failed!"]},
@@ -50,14 +51,14 @@ class APIHandler(BaseHandler, ABC):
         if not is_valid_req:
             return self.finish(self.MAP_ERROR_INFO["SIGN_CHECK_FAIL"])
 
-        resp = dict(code=5200, message=["success"])
+        resp = {"code": 5200, "message": ["success"]}
         try:
             result = self.response(**data)
             resp["data"] = result
             resp["salt_uuid"] = salt_uuid
         except Exception as e:
             if self.LOG.level == logging.DEBUG:
-                self.LOG.error(e, exc_info=True)
+                self.LOG.exception("Error processing v1 request")
             return self.finish({"code": 5201, "message": [repr(e)]})
 
         return self.finish(resp)
@@ -76,7 +77,7 @@ def create_v1_router(handler_class):
     async def handle_post(request: Request, **kwargs):
         try:
             body = await request.json()
-        except Exception:
+        except (json.JSONDecodeError, ValueError):
             return JSONResponse(
                 {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}, status_code=400
             )
@@ -96,14 +97,14 @@ def create_v1_router(handler_class):
         handler = handler_class()
         handler._request = request
 
-        resp = dict(code=5200, message=["success"])
+        resp = {"code": 5200, "message": ["success"]}
         try:
             result = handler.response(**data)
             resp["data"] = result
             resp["salt_uuid"] = salt_uuid
         except Exception as e:
             if handler.LOG.level == logging.DEBUG:
-                handler.LOG.error(e, exc_info=True)
+                handler.LOG.exception("Error in handle_post")
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
         return JSONResponse(resp)
@@ -127,7 +128,7 @@ class APICaller(AbstractApiClient):
     ):
         """Wrap the payload with signature fields expected by v1 handlers."""
         if app_id is None:
-            app_id = list(self.APP_ID_KEYS.keys())[0]
+            app_id = next(iter(self.APP_ID_KEYS.keys()))
         salt_uuid = salt_uuid or str(uuid.uuid1())
         sign = sign or sign_data(
             salt_uuid=salt_uuid,
@@ -139,7 +140,7 @@ class APICaller(AbstractApiClient):
         return {"salt_uuid": salt_uuid, "app_id": app_id, "sign": sign, "data": data}
 
 
-def sign_data(salt_uuid: str, app_id: str, app_key: str, data, sign_method: str = None):
+def sign_data(salt_uuid: str, app_id: str, app_key: str, data, sign_method: str | None = None):
     """Generate the v1 signature for a payload.
 
     The signature is based on `app_id + salt_uuid + data + app_key`.
@@ -149,17 +150,17 @@ def sign_data(salt_uuid: str, app_id: str, app_key: str, data, sign_method: str 
 
     func_sign_check = func_sign_check_default if sign_method is None else FUNC_SIGN_CHECK.get(sign_method)
     if func_sign_check is None:
-        raise ValueError("Invalid `sign_method`: %s" % sign_method)
+        raise ValueError(f"Invalid `sign_method`: {sign_method}")
     sign = func_sign_check(public_key)
     return sign
 
 
-def sign_check(salt_uuid: str, app_id: str, sign: str, data, sign_method: str = None, date_time=None):
+def sign_check(salt_uuid: str, app_id: str, sign: str, data, sign_method: str | None = None, date_time=None):
     """Validate a v1 request signature."""
 
     func_sign_check = func_sign_check_default if sign_method is None else FUNC_SIGN_CHECK.get(sign_method)
     if func_sign_check is None:
-        raise ValueError("Invalid `sign_method`: %s" % sign_method)
+        raise ValueError(f"Invalid `sign_method`: {sign_method}")
 
     app_key = APP_ID_KEYS.get(app_id)
     if app_key is None:

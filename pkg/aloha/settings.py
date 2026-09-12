@@ -61,14 +61,14 @@ class Settings:
 
         :param config: The configuration data to load (dict or list).
         :return: The converted configuration object (AttrDict or list).
-        :raises ValueError: If the configuration data type is unsupported.
+        :raises TypeError: If the configuration data type is unsupported.
         """
         if isinstance(config, dict):
             self._config = AttrDict({key: self.load_settings(value) for key, value in config.items()})
         elif isinstance(config, list):
             self._config = [self.load_settings(value) for value in config]
         else:
-            raise ValueError("Unsupported config type: %s" % str(type(config)))
+            raise TypeError(f"Unsupported config type: {type(config)!s}")
         return self._config
 
     @property
@@ -77,7 +77,7 @@ class Settings:
         Get the global configuration object.
 
         Lazily loads and parses configuration files on first access. It resolves active
-        HOCON configuration files based on the `FILES_CONFIG` or `ENV_PROFILE` environment
+        HOCON configuration files based on the `FILES_CONFIG` or `PROFILE_ENV` (or legacy `ENV_PROFILE`) environment
         variables, falls back to `main.conf` if not specified, and merges them into an `AttrDict`.
 
         :return: Merged global configuration settings as an AttrDict.

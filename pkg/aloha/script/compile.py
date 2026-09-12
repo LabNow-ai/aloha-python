@@ -30,15 +30,15 @@ def _expand(patterns: list | None = None):
 
 
 def _delete(file_path: str, ignore_errors=True):
-    print("Removing file/folder: %s" % file_path)
+    print(f"Removing file/folder: {file_path}")
     try:
         if os.path.isfile(file_path) or os.path.islink(file_path):
             os.unlink(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
-    except Exception as e:
+    except Exception:
         if not ignore_errors:
-            raise e
+            raise
 
 
 def build(
@@ -101,7 +101,7 @@ def build(
     # c code -> dynamic library file
     path_build_tmp = os.path.join(path_build, ".tmp")
     script_args = ["build_ext", "-b", path_build, "-t", path_build_tmp, "-j", n_parallel]
-    print("Build args: %s" % " ".join(str(s) for s in script_args))
+    print("Build args: {}".format(" ".join(str(s) for s in script_args)))
     setup(ext_modules=cythonized, script_args=script_args)
 
     # clean up
@@ -127,7 +127,7 @@ def package(
     path_dist = os.path.abspath(dist)
     os.makedirs(path_dist, exist_ok=True)
     if len(glob.glob(path_dist + "/*")) > 0:
-        raise ValueError("Dist folder [%s] MUST be an empty directory or an non-existing folder!" % path_dist)
+        raise ValueError(f"Dist folder [{path_dist}] MUST be an empty directory or an non-existing folder!")
 
     folder_name = os.getcwd().split(os.sep)[-1]
     folder_temp = os.path.join("/tmp/build/", folder_name)
@@ -143,7 +143,7 @@ def package(
     )
     [shutil.move(f, os.path.join(path_dist, f.split(os.sep)[-1])) for f in glob.glob(folder_temp + "/*")]
     t = time.time() - t
-    print("\n\nTime consumed to build code: %.2f seconds." % t)
+    print(f"\n\nTime consumed to build code: {t:.2f} seconds.")
     print("Successfully finished building package to: ", path_dist)
 
 
@@ -159,7 +159,7 @@ def main():
     args = p.parse_args()
     args = vars(args)
     for k, v in args.items():
-        print("%s = %s" % (k, v))
+        print(f"{k} = {v}")
     package(**args)
 
 

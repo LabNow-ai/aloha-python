@@ -61,6 +61,7 @@ nav:
   - 快速开始: "README-get-start.md"
   - CLI 命令: "README-cli.md"
   - 配置说明: "README-config.md"
+  - 12-Factor 落地指南: "README-12factor.md"
   - 开发文档: "README-develop.md"
   - API 参考:
       - 概览: "api/index.md"

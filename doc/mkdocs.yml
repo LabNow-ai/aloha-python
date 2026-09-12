@@ -61,6 +61,7 @@ nav:
   - Get Started: "README-get-start.md"
   - CLI Commands: "README-cli.md"
   - Configs: "README-config.md"
+  - 12-Factor Implementation Guide: "README-12factor.md"
   - Development Guide: "README-develop.md"
   - API Reference:
       - Overview: "api/index.md"

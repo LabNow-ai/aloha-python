@@ -111,7 +111,9 @@ class DuckOperator:
     @property
     def connection_str(self) -> str:
         """Return a human-readable connection string."""
-        return f"duckdb:///{self._config['path']} [schema={self._config['schema']}, read_only={self._config['read_only']}] (async)"
+        return (
+            f"duckdb:///{self._config['path']} [schema={self._config['schema']}, read_only={self._config['read_only']}] (async)"
+        )
 
     async def close(self):
         """Close the async engine and all connections."""

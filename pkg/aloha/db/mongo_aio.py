@@ -27,7 +27,7 @@ _conn = {}
 def MongoOperator(config):
     """
     Return a cached async MongoDB operation wrapper for the given config.
-    
+
     Note: This function returns the same async operator class (no caching needed for async).
     The caching behavior is preserved for API compatibility but the underlying operations are async.
     """
@@ -117,7 +117,11 @@ class _MongoDBOperation:
         """Insert a single document or a list of documents asynchronously."""
         try:
             collection = await self.check_and_get_collection(collection_name)
-            return await collection.insert_many(doc_or_docs, check_keys=check_keys) if isinstance(doc_or_docs, list) else await collection.insert_one(doc_or_docs)
+            return (
+                await collection.insert_many(doc_or_docs, check_keys=check_keys)
+                if isinstance(doc_or_docs, list)
+                else await collection.insert_one(doc_or_docs)
+            )
         except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 

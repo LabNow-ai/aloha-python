@@ -24,9 +24,9 @@ When writing code or configurations for this project, you **MUST** strictly adhe
 
 ### A. Python Coding & Naming Standards
 
-- **Primary Type/First-Class Identity Prefix**: Place the variable's type, role, or primary characteristics first in its name.
-  - _Correct_: `name_service`, `port_service`, `svc_ingress`, `cfg_postgres`, `db_mysql`.
-  - _Incorrect_: `service_name`, `service_port`, `ingress_service`, `postgres_config`, `mysql_db`.
+- **Primary Type/First-Class Identity Prefix**: Place the variable's type, role, or primary characteristics first in its name. If multiple variables in a segment of code belong to the same category, type, or semantic group, place the common semantic prefix first.
+  - _Correct_: `name_service`, `port_service`, `svc_ingress`, `cfg_postgres`, `db_mysql`, `msg_err`, `msg_info`.
+  - _Incorrect_: `service_name`, `service_port`, `ingress_service`, `postgres_config`, `mysql_db`, `err_msg`, `info_msg`.
 - **Logger Naming**: Use lowercase with underscores for logger names, e.g., `db_sync`, `api_router`.
 - **Import Conventions**: Use relative imports if possible, especially inside a package.
 

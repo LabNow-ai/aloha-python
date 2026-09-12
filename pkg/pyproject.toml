@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Aloha - a versatile Python utility package for building services"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 authors = [
     {name = "LabNow.ai", email = "postmaster@labnow.ai"}
 ]
@@ -49,6 +49,18 @@ db = [
     "duckdb-engine",
     "oracledb",
 ]
+# Async database drivers for aio modules
+aio = [
+    "sqlalchemy[asyncio]",
+    "asyncpg",
+    "aiomysql",
+    "redis[hiredis]",
+    "motor",
+    "elasticsearch[async]",
+    "aiokafka",
+    "aiosqlite",
+    "aioduckdb",
+]
 stream = ["confluent_kafka"]
 data = ["pandas", "lxml"]
 report = ["openpyxl", "XlsxWriter"]
@@ -79,7 +91,17 @@ all = [
     "mkdocs",
     "mkdocstrings[python]",
     "markdown-include",
-    "mkdocs-material"
+    "mkdocs-material",
+    # Async database drivers
+    "sqlalchemy[asyncio]",
+    "asyncpg",
+    "aiomysql",
+    "redis[hiredis]",
+    "motor",
+    "elasticsearch[async]",
+    "aiokafka",
+    "aiosqlite",
+    "aioduckdb",
 ]
 
 [tool.setuptools]

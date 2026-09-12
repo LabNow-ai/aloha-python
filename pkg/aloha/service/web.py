@@ -1,9 +1,10 @@
 """FastAPI web application assembly for aloha services."""
 
+import json
 import logging
 import os
 import re
-from typing import Any, List, Tuple
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
@@ -15,11 +16,11 @@ from ..settings import SETTINGS
 setup_logger(
     logging.getLogger("uvicorn.access"),
     formatter_str="A> %(asctime)s> %(message)s",
-    module="access_%s" % (SETTINGS.config.get("APP_MODULE") or os.environ.get("APP_MODULE", "default")),
+    module=f"access_{SETTINGS.config.get('APP_MODULE') or os.environ.get('APP_MODULE', 'default')}",
 )
 
 
-def _load_routes(name: str) -> List[Tuple[str, Any]]:
+def _load_routes(name: str) -> list[tuple[str, Any]]:
     """Load routes from a service module.
 
     Returns list of (url_pattern, handler_class) tuples.
@@ -41,7 +42,7 @@ def _load_routes(name: str) -> List[Tuple[str, Any]]:
 class FastAPIApplication:
     """FastAPI application that loads routes from configured service modules."""
 
-    def __init__(self, config: dict = None, **kwargs):
+    def __init__(self, config: dict | None = None, **kwargs):
         """Create the FastAPI application and its routes."""
         self.config = config or {}
         self.app = FastAPI(title="Aloha Service", version="1.0.0", **kwargs)
@@ -59,7 +60,7 @@ class FastAPIApplication:
             handler = handler_class(request=request)
             if hasattr(handler, "handle") and callable(handler.handle):
                 return await handler.handle(request)
-            if hasattr(handler, "__call__") and callable(handler):
+            if callable(handler) and callable(handler):
                 return await handler(request)
             if hasattr(handler, "response") and callable(handler.response):
                 return await handler.response()
@@ -77,15 +78,15 @@ class FastAPIApplication:
             routes = _load_routes(m)
             for url, handler_class in routes:
                 self._register_handler(url, handler_class)
-                s_log_msg = "Loaded API module %-50s" % url
+                s_log_msg = f"Loaded API module {url:<50}"
                 if LOG.level < logging.INFO:
-                    s_log_msg += "\t from class %s" % str(handler_class)
+                    s_log_msg += f"\t from class {handler_class!s}"
                 LOG.info(s_log_msg)
 
     def _register_handler(self, url: str, handler_class):
         """Register a handler class as FastAPI routes based on its methods."""
-        has_get = hasattr(handler_class, "get") and callable(getattr(handler_class, "get"))
-        has_post = hasattr(handler_class, "post") and callable(getattr(handler_class, "post"))
+        has_get = hasattr(handler_class, "get") and callable(handler_class.get)
+        has_post = hasattr(handler_class, "post") and callable(handler_class.post)
 
         # Determine path pattern for FastAPI
         fastapi_url, path_params = self._convert_url_pattern(url)
@@ -110,7 +111,7 @@ class FastAPIApplication:
 
                 try:
                     body = await request.json()
-                except Exception:
+                except (json.JSONDecodeError, ValueError):
                     body = {}
 
                 kwargs.update(body)
@@ -121,7 +122,7 @@ class FastAPIApplication:
                     if isinstance(result, Response):
                         return result
                     # Otherwise, wrap in standard response format
-                    resp = dict(code=5200, message=["success"])
+                    resp = {"code": 5200, "message": ["success"]}
                     if isinstance(result, dict):
                         resp["data"] = result.get("data", result)
                     else:
@@ -129,7 +130,7 @@ class FastAPIApplication:
                     return JSONResponse(resp)
                 except Exception as e:
                     if handler.LOG.level == logging.DEBUG:
-                        handler.LOG.error(e, exc_info=True)
+                        handler.LOG.exception("Exception occurred during request processing")
                     return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
             self.app.post(fastapi_url)(post_handler)
@@ -156,7 +157,7 @@ class FastAPIApplication:
                     if isinstance(result, Response):
                         return result
                     # Otherwise, wrap in standard response format
-                    resp = dict(code=5200, message=["success"])
+                    resp = {"code": 5200, "message": ["success"]}
                     if isinstance(result, dict):
                         resp["data"] = result.get("data", result)
                     else:
@@ -164,7 +165,7 @@ class FastAPIApplication:
                     return JSONResponse(resp)
                 except Exception as e:
                     if handler.LOG.level == logging.DEBUG:
-                        handler.LOG.error(e, exc_info=True)
+                        handler.LOG.exception("Exception occurred during request processing")
                     return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
             self.app.get(fastapi_url)(get_handler)
@@ -185,25 +186,25 @@ class FastAPIApplication:
 
                 try:
                     body = await request.json()
-                except Exception:
+                except (json.JSONDecodeError, ValueError):
                     body = {}
 
                 kwargs.update(body)
 
-                resp = dict(code=5200, message=["success"])
+                resp = {"code": 5200, "message": ["success"]}
                 try:
                     result = handler.response(**kwargs)
                     resp["data"] = result
                 except Exception as e:
                     if handler.LOG.level == logging.DEBUG:
-                        handler.LOG.error(e, exc_info=True)
+                        handler.LOG.exception("Exception occurred during request processing")
                     return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
                 return JSONResponse(resp)
 
             self.app.post(fastapi_url)(default_handler)
 
-    def _convert_url_pattern(self, tornado_pattern: str) -> Tuple[str, bool]:
+    def _convert_url_pattern(self, tornado_pattern: str) -> tuple[str, bool]:
         """Convert Tornado URL pattern to FastAPI pattern.
 
         Tornado: /api/common/sys_info/(.*)
@@ -228,7 +229,7 @@ class FastAPIApplication:
     def get_port(self) -> int:
         """Get the configured port."""
         service_settings = self.config.get("service", {})
-        port = service_settings.get("port") or int(os.environ.get("PORT_SVC", 8000))
+        port = service_settings.get("port") or int(os.environ.get("PORT_SVC", "8000"))
         port = int(os.environ.get("PORT", port))
         return port
 

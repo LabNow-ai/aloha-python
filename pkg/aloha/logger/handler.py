@@ -18,9 +18,7 @@ class MultiProcessSafeDailyRotatingFileHandler(BaseRotatingHandler):
         BaseRotatingHandler.__init__(self, filename, "a", encoding, delay)
 
     def shouldRollover(self, record):
-        if self.currentFileName != self._compute_fn():
-            return True
-        return False
+        return self.currentFileName != self._compute_fn()
 
     def doRollover(self):
         if self.stream:

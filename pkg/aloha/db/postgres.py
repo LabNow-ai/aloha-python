@@ -9,7 +9,7 @@ from .base import PasswordVault
 
 __all__ = ("PostgresOperator",)
 
-LOG.debug("postgres: psycopg version = %s" % psycopg.__version__)
+LOG.debug(f"postgres: psycopg version = {psycopg.__version__}")
 
 
 class PostgresOperator:
@@ -42,7 +42,7 @@ class PostgresOperator:
             LOG.debug("PostgresSQL connected: {host}:{port}/{dbname}".format(**self._config))
         except Exception as e:
             LOG.error(e)
-            raise RuntimeError("Failed to connect to PostgresSQL")
+            raise RuntimeError("Failed to connect to PostgresSQL") from e
 
     @property
     def connection(self):

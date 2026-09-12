@@ -8,7 +8,7 @@ try:
     import pynvml as nvml
     from pynvml.smi import nvidia_smi
 
-    LOG.debug("Using pynvml == %s" % nvml.__version__)
+    LOG.debug(f"Using pynvml == {nvml.__version__}")
 except ImportError:
     LOG.warn("Package `pynvml` NOT installed! Cannot get GPU info.")
     nvml = nvidia_smi = None
@@ -27,7 +27,7 @@ class NvInfo:
         try:
             nvml.nvmlInit()
             LOG.debug("NVML loaded and initialized successfully.")
-        except Exception:
+        except Exception:  # noqa: BLE001
             LOG.error("Fail to initialize NVML!")
             nvml = None
 
@@ -35,26 +35,26 @@ class NvInfo:
         try:
             if nvml is not None:
                 nvml.nvmlShutdown()
-        except Exception as e:
-            LOG.error("Exception removing NvInfo: %s" % e)
+        except Exception as e:  # noqa: BLE001
+            LOG.error(f"Exception removing NvInfo: {e}")
 
     @staticmethod
     def get_driver_version() -> str:
         if nvml is not None:
             try:
                 ver: bytes = nvml.nvmlSystemGetDriverVersion()
-                LOG.debug("GPU driver version %s" % str(ver))
+                LOG.debug(f"GPU driver version {ver!s}")
                 return ver.decode(encoding="UTF-8")
-            except Exception as e:
-                LOG.info("NVML library error: %s" % str(e))
+            except Exception as e:  # noqa: BLE001
+                LOG.info(f"NVML library error: {e!s}")
         return "Unknown"
 
     @staticmethod
     def get_device_count() -> int:
         try:
             return nvml.nvmlDeviceGetCount()
-        except Exception as e:
-            LOG.info("NVML library error: %s" % str(e))
+        except Exception as e:  # noqa: BLE001
+            LOG.info(f"NVML library error: {e!s}")
             return 0
 
     def get_device_list(self) -> list:
@@ -65,14 +65,14 @@ class NvInfo:
 
             try:
                 name = nvml.nvmlDeviceGetName(handler).decode(encoding="UTF-8")
-            except Exception as e:
-                msg = "Failed to get device name: %s" % str(e)
+            except Exception as e:  # noqa: BLE001
+                msg = f"Failed to get device name: {e!s}"
                 LOG.info(msg)
 
             try:
                 arch = nvml.nvmlDeviceGetArchitecture(handler)
-            except Exception as e:
-                msg = "Failed to get device architecture: %s" % str(e)
+            except Exception as e:  # noqa: BLE001
+                msg = f"Failed to get device architecture: {e!s}"
                 LOG.info(msg)
 
             device = Device(index=i, name=name, arch=arch)
@@ -102,8 +102,8 @@ class NvInfo:
             return
         try:
             return nvidia_smi.getInstance()
-        except Exception as e:
-            LOG.warning("Failed to get smi: %s" % str(e))
+        except Exception as e:  # noqa: BLE001
+            LOG.warning(f"Failed to get smi: {e!s}")
             return
 
 
@@ -124,7 +124,7 @@ def get_gpu_info(*args, **kwargs) -> dict:
     smi = nv_info.get_smi()
     if smi is not None:
         if len(args) == 0:
-            args = "name;vbios_version;inforom.oem;compute-apps".split(";")
+            args = ["name", "vbios_version", "inforom.oem", "compute-apps"]
         for k in args:
             ret[k] = smi.DeviceQuery(k)
 

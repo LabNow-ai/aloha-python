@@ -1,5 +1,5 @@
 import platform
-from datetime import datetime
+from datetime import datetime, timezone
 
 import psutil
 
@@ -7,7 +7,7 @@ from ..logger import LOG
 
 __all__ = ("get_sys_info",)
 
-LOG.debug("Using psutil == %s" % psutil.__version__)
+LOG.debug(f"Using psutil == {psutil.__version__}")
 
 
 def get_size(bytes, suffix="B"):
@@ -37,7 +37,7 @@ def get_os_info(*args, **kwargs) -> dict:
     """
     ret = {}
 
-    boot_time = datetime.fromtimestamp(psutil.boot_time())
+    boot_time = datetime.fromtimestamp(psutil.boot_time(), tz=timezone.utc)
     ret["boot_time"] = boot_time.strftime("%Y-%m-%d %H:%M:%S.%f")
 
     uname = platform.uname()
@@ -61,7 +61,7 @@ def get_cpu_info(*args, **kwargs) -> dict:
         "cpu_percent_total": f"{psutil.cpu_percent()}%",
     }
     for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
-        ret["cpu_percent_core_%02d" % i] = f"{percentage}%"
+        ret[f"cpu_percent_core_{i:02d}"] = f"{percentage}%"
 
     return ret
 
@@ -153,9 +153,9 @@ def get_net_info(*args, **kwargs) -> dict:
             family = str(address.family).split(".")[-1]
             family = {"AF_LINK": "mac", "AF_INET": "ipv4", "AF_INET6": "ipv6"}.get(family, family)
 
-            interface["%s_address" % family] = address.address
-            interface["%s_netmask" % family] = address.netmask
-            interface["%s_broadcast" % family] = address.broadcast
+            interface[f"{family}_address"] = address.address
+            interface[f"{family}_netmask"] = address.netmask
+            interface[f"{family}_broadcast"] = address.broadcast
 
         ret["interfaces"].append(interface)
 

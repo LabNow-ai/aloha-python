@@ -1,8 +1,7 @@
 """RSA encrypt/decrypt and signing helpers."""
 
 import base64
-from functools import lru_cache
-from typing import Optional, Tuple, Union
+from typing import ClassVar
 
 from Crypto.Cipher import PKCS1_OAEP, PKCS1_v1_5
 from Crypto.Hash import SHA1, SHA256
@@ -11,7 +10,7 @@ from Crypto.Signature import pss
 
 __all__ = ("RsaEncryptor",)
 
-t_cipher_module = Union[PKCS1_v1_5.PKCS115_Cipher, PKCS1_OAEP.PKCS1OAEP_Cipher]
+t_cipher_module = PKCS1_v1_5.PKCS115_Cipher | PKCS1_OAEP.PKCS1OAEP_Cipher
 
 _RSA_CIPHER_METHODS = {  # FULL_CIPHER_NAME: (module, dict_params)
     "RSA/ECB/PKCS1Padding": (PKCS1_v1_5, {"randfunc": None}),
@@ -23,8 +22,8 @@ _RSA_CIPHER_METHODS = {  # FULL_CIPHER_NAME: (module, dict_params)
 class RsaEncryptor:
     """Encrypt, decrypt, and convert RSA keys and payloads."""
 
-    _dict_cache_cipher = {}
-    _dict_cache_decipher = {}
+    _dict_cache_cipher: ClassVar[dict] = {}
+    _dict_cache_decipher: ClassVar[dict] = {}
     supported_cipher_methods = _RSA_CIPHER_METHODS
 
     # ref: https://cryptobook.nakov.com/asymmetric-key-ciphers/rsa-encrypt-decrypt-examples
@@ -37,20 +36,19 @@ class RsaEncryptor:
         self.cipher_name = cipher_name
 
     @staticmethod
-    def _get_cipher_module(full_cipher_name: str | None = None) -> Optional[Tuple]:
+    def _get_cipher_module(full_cipher_name: str | None = None) -> tuple | None:
         try:
             return _RSA_CIPHER_METHODS[full_cipher_name]
         except KeyError:
-            raise ValueError("Unsupported full cipher name, supported ones: %s." % ",".join(sorted(_RSA_CIPHER_METHODS)))
+            raise ValueError("Unsupported full cipher name, supported ones: {}.".format(",".join(sorted(_RSA_CIPHER_METHODS))))
 
     @staticmethod
-    def generate_key_pair(size: int = 1024) -> Tuple[str, str]:
+    def generate_key_pair(size: int = 1024) -> tuple[str, str]:
         """Generate a PEM-encoded RSA key pair."""
         key_pair = RSA.generate(size)
         key_private, key_public = key_pair.exportKey(), key_pair.publickey().exportKey()
         return key_private.decode("ascii"), key_public.decode("ascii")
 
-    @lru_cache
     def get_cipher(self, key_public: str | None = None, cipher_name="RSA/ECB/PKCS1Padding") -> t_cipher_module:
         """Return a cached public-key cipher instance."""
         if key_public is None:
@@ -66,7 +64,6 @@ class RsaEncryptor:
         # debug: print('->PUB',  cache_key, len(RsaEncryptor._dict_cache_cipher))
         return RsaEncryptor._dict_cache_cipher[cache_key]
 
-    @lru_cache
     def get_decipher(self, key_private: str | None = None, cipher_name="RSA/ECB/PKCS1Padding") -> t_cipher_module:
         """Return a cached private-key decipher instance."""
         if key_private is None:
@@ -85,7 +82,7 @@ class RsaEncryptor:
     @staticmethod
     def load_keys_from_binary(
         key_private: bytes | None = None, key_public: bytes | None = None
-    ) -> Tuple[Optional[RSA.RsaKey], Optional[RSA.RsaKey]]:
+    ) -> tuple[RSA.RsaKey | None, RSA.RsaKey | None]:
         """Load RSA keys from PEM/DER bytes."""
         _key_private, _key_public = None, None
 
@@ -93,20 +90,20 @@ class RsaEncryptor:
             try:
                 _key_private = RSA.import_key(key_private)
             except ValueError:
-                raise ValueError("RSA pri key format error: [%s]" % key_private)
+                raise ValueError(f"RSA pri key format error: [{key_private}]")
 
         if key_public is not None:
             try:
                 _key_public = RSA.import_key(key_public)
             except ValueError:
-                raise ValueError("RSA pub key format error: [%s]" % key_public)
+                raise ValueError(f"RSA pub key format error: [{key_public}]")
 
         return _key_private, _key_public
 
     @staticmethod
     def load_keys_from_string(
         key_private: str | None = None, key_public: str | None = None
-    ) -> Tuple[Optional[RSA.RsaKey], Optional[RSA.RsaKey]]:
+    ) -> tuple[RSA.RsaKey | None, RSA.RsaKey | None]:
         """Load RSA keys from PEM-like strings."""
         _key_private, _key_public = None, None
 
@@ -118,7 +115,7 @@ class RsaEncryptor:
             try:
                 _key_private = RSA.import_key(key_pri)
             except ValueError:
-                raise ValueError("RSA private key format error: [%s]" % key_pri)
+                raise ValueError(f"RSA private key format error: [{key_pri}]")
 
         if key_public is not None:
             if not key_public.startswith("-----"):
@@ -128,12 +125,12 @@ class RsaEncryptor:
             try:
                 _key_public = RSA.import_key(key_pub)
             except ValueError:
-                raise ValueError("RSA public key format error: [%s]" % key_pub)
+                raise ValueError(f"RSA public key format error: [{key_pub}]")
 
         return _key_private, _key_public
 
     def encrypt_with_public_key(
-        self, message: Union[str, bytes], key_public: str | None = None, cipher_name: str = None
+        self, message: str | bytes, key_public: str | None = None, cipher_name: str | None = None
     ) -> bytes:
         """Encrypt a message with a public key."""
         data = message if isinstance(message, bytes) else message.encode("UTF-8")
@@ -141,7 +138,7 @@ class RsaEncryptor:
         return cipher.encrypt(data)
 
     def decrypt_with_private_key(
-        self, ciphertext: Union[str, bytes], key_private: str | None = None, cipher_name: str | None = None, **kwargs
+        self, ciphertext: str | bytes, key_private: str | None = None, cipher_name: str | None = None, **kwargs
     ) -> bytes:
         """Decrypt ciphertext with a private key."""
         data = ciphertext if isinstance(ciphertext, bytes) else ciphertext.encode("ascii")
@@ -176,7 +173,5 @@ def main():
             y_dec = rsa_dec.decrypt_with_private_key(y_bin, key_private=key_pri)
             y_txt = y_dec.decode("UTF-8")
 
-            msg = "[test {i_case} success = {status}] {src} -> {enc}".format(
-                i_case=i, status=(y_txt == str_src), src=y_txt, enc=x_txt
-            )
+            msg = f"[test {i} success = {y_txt == str_src}] {y_txt} -> {x_txt}"
             print(msg)

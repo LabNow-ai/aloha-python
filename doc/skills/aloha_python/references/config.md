@@ -10,13 +10,13 @@ The configuration and startup behavior of an `aloha` application can be customiz
 
 | Environment Variable | Default Value            | Description                                                                                                                      |
 | :------------------- | :----------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| `ENV_PROFILE`        | `None` (undefined)       | Specifies the running profile (e.g., `DEV`, `STG`, `PRD`). Determines the configuration entry file (`main-${ENV_PROFILE}.conf`). |
+| `PROFILE_ENV`        | `None` (undefined)       | Specifies the running profile (e.g., `DEV`, `STG`, `PRD`). Determines the configuration entry file (`main-${PROFILE_ENV}.conf`). Falls back to legacy `ENV_PROFILE` with a deprecation warning if unset. `ENV_PROFILE` is deprecated and will be removed in a future release. |
 | `ENTRYPOINT`         | `None` (undefined)       | Specifies the default Python module entry point when running `aloha start`. The module must contain a `main()` function.         |
 | `APP_MODULE`         | `default`                | Identifies the application/module name. Mapped to configuration key `APP_MODULE` and used as a prefix for the log file names.    |
 | `DIR_LOG`            | `logs`                   | The directory where log files are stored.                                                                                        |
 | `DIR_RESOURCE`       | `resource` (under CWD)   | Root directory containing non-code resources (e.g. assets, static data).                                                         |
 | `DIR_CONFIG`         | `${DIR_RESOURCE}/config` | Directory where configuration files are located.                                                                                 |
-| `FILES_CONFIG`       | `None` (undefined)       | Comma-separated list of configuration filenames to load (e.g., `db.conf,server.conf`). If defined, it overrides `ENV_PROFILE`.   |
+| `FILES_CONFIG`       | `None` (undefined)       | Comma-separated list of configuration filenames to load (e.g., `db.conf,server.conf`). If defined, it overrides `PROFILE_ENV`.   |
 
 ---
 
@@ -30,8 +30,10 @@ This module resolves paths for config directories, resource directories, and act
 - `get_config_dir(*args) -> str`: Resolves the absolute path to the configuration directory. Relies on the `DIR_CONFIG` environment variable.
 - `get_config_files() -> list`: Determines which HOCON configuration files should be loaded.
   - If `FILES_CONFIG` environment variable is defined, it splits the list by comma and resolves their paths.
-  - If `FILES_CONFIG` is not defined but `ENV_PROFILE` is defined, it resolves `main-${ENV_PROFILE}.conf`.
-  - Otherwise, it defaults to `main.conf`.
+  - If `FILES_CONFIG` is not defined:
+    - Checks `PROFILE_ENV` first. If defined, it resolves `main-${PROFILE_ENV}.conf`.
+    - If `PROFILE_ENV` is not defined, falls back to legacy `ENV_PROFILE` with a `DeprecationWarning` (support for `ENV_PROFILE` will be removed in a future release).
+  - Otherwise (neither is defined), it defaults to `main.conf`.
 - `get_project_base_dir(file_caller: str) -> str`: Traverses directories upwards from `file_caller` (typically passed as `__file__`) until it finds a directory containing no `__init__.py`, marking the project base root.
 
 ---

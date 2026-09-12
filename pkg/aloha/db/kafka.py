@@ -10,7 +10,7 @@ from ..logger import LOG
 
 __all__ = ("KafkaOperator",)
 
-LOG.debug("Version of confluent_kafka client = %s" % kafka.__version__)
+LOG.debug(f"Version of confluent_kafka client = {kafka.__version__}")
 
 
 class KafkaOperator:
@@ -49,19 +49,19 @@ class KafkaOperator:
         fs = a.create_topics([new_topic])
 
         # Wait for each operation to finish.
-        for topic, f in fs.items():
+        for topic_name, f in fs.items():
             try:
                 f.result()  # The result itself is None
-                LOG.info("Topic {} created".format(topic))
-            except Exception as e:
-                LOG.error("Failed to create topic {}: {}".format(topic, e))
+                LOG.info(f"Topic {topic_name} created")
+            except Exception as e:  # noqa: BLE001
+                LOG.error(f"Failed to create topic {topic_name}: {e}")
                 return False
             finally:
                 a.close()
 
         return True
 
-    def producer_deliver(self, topic: str, generator: typing.Iterator[str], func_callback: callable = None, *args, **kwargs):
+    def producer_deliver(self, topic: str, generator: typing.Iterator[str], func_callback: callable | None = None, *args, **kwargs):
         """Stream messages from an iterator into a Kafka topic."""
         # func_callback should be a function that takes two arguments: err and msg
         config_producer = {**self._config}
@@ -70,9 +70,9 @@ class KafkaOperator:
         def delivery_report(err, msg):
             """Called once for each message produced to indicate delivery result. Triggered by poll() or flush()."""
             if err is not None:
-                LOG.error("Kafka msg delivery failed: {}".format(err))
+                LOG.error(f"Kafka msg delivery failed: {err}")
             else:
-                LOG.debug("Kafka msg delivered to {} [{}]".format(msg.topic(), msg.partition()))
+                LOG.debug(f"Kafka msg delivered to {msg.topic()} [{msg.partition()}]")
 
         if func_callback is None:
             func_callback = delivery_report
@@ -108,11 +108,11 @@ class KafkaOperator:
                 code = msg.error().code()
                 if code == kafka.KafkaError._PARTITION_EOF:
                     pass
-                LOG.error("Kafka consumer: {}".format(msg.error()))
+                LOG.error(f"Kafka consumer: {msg.error()}")
                 continue
 
             data = msg.value().decode("utf-8")
-            LOG.debug("Received message: {}".format(data))
+            LOG.debug(f"Received message: {data}")
             yield data
 
         c.close()

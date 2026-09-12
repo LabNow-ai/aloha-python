@@ -1,16 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from aloha.service.api.v0 import APIHandler
 from aloha.util import sys_cuda, sys_gpu, sys_info
 
 
 def echo(*args, **kwargs):
-    return {"sys_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"), **kwargs}
+    return {"sys_time": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f"), **kwargs}
 
 
 class SysStatusInfo(APIHandler):
     @staticmethod
-    def get_sys_info(kind: str = None, **kwargs) -> dict:
+    def get_sys_info(kind: str | None = None, **kwargs) -> dict:
         kinds = ["echo"]
         if kind is None or len(kind) == 0:
             pass
@@ -39,15 +39,13 @@ class SysStatusInfo(APIHandler):
 
         return ret
 
-    def response(self, kind: str = None, *args, **kwargs) -> dict:
+    def response(self, kind: str | None = None, *args, **kwargs) -> dict:
         return self.get_sys_info(kind=kind)
 
-    async def get(self, kind: str = None, *args, **kwargs):
+    async def get(self, kind: str | None = None, *args, **kwargs):
         # Handle path_param from URL pattern
-        if "path_param" in kwargs:
-            # If kind is not set, try to use path_param as kind
-            if kind is None:
-                kind = kwargs.pop("path_param", None)
+        if "path_param" in kwargs and kind is None:
+            kind = kwargs.pop("path_param", None)
         data = self.get_sys_info(kind=kind)
         return self.finish(data)
 

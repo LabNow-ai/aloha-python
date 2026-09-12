@@ -4,7 +4,7 @@ import sys
 
 
 def main():
-    print("\n".join(sorted("%s=%s" % (k, v) for k, v in os.environ.items())))
+    print("\n".join(sorted(f"{k}={v}" for k, v in os.environ.items())))
 
     usage = """
     Usage: `python main.py app_common.main` ; or set environment variable `ENTRYPOINT` 
@@ -18,19 +18,19 @@ def main():
 
     if module_name is None:
         print(usage)
-        exit(-1)
+        sys.exit(-1)
 
     try:
         m = importlib.import_module(module_name)
     except ImportError:
-        raise ValueError("Invalid entrypoint: %s" % module_name)
+        raise ValueError(f"Invalid entrypoint: {module_name}")
 
-    f_main = getattr(m, "main")
+    f_main = m.main
 
     if f_main is None:
         print("Given module does not provides a `main()` function!")
     else:
-        print("Starting module: %s" % module_name)
+        print(f"Starting module: {module_name}")
         ret = f_main()
         if ret:
             print(ret)

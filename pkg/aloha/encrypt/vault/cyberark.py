@@ -2,25 +2,21 @@
 
 import hashlib
 from binascii import a2b_hex
+from typing import ClassVar
 from urllib.parse import quote_plus as urlquote
 
-import requests
+import httpx2
 from Crypto.Cipher import AES
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from ...encrypt.aes import AesEncryptor
 from ...logger import LOG
 from .base import BaseVault
 
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-if hasattr(requests.packages.urllib3.util.ssl_, "DEFAULT_CIPHERS"):
-    requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += ":HIGHT:!DH:!aNULL"
-
 
 class CyberArkVault(BaseVault, AesEncryptor):
     """Fetch and decrypt passwords from a CyberArk-compatible endpoint."""
 
-    _cached: dict = {}
+    _cached: ClassVar[dict] = {}
 
     def __init__(self, url: str, app_id: str, key: str | None = None, safe: str = "AIM_ELIS_LAS", folder: str = "root"):
         """Initialize the vault with the CyberArk endpoint and credentials."""
@@ -63,7 +59,7 @@ class CyberArkVault(BaseVault, AesEncryptor):
         while retry:
             try:
                 LOG.debug("POST CyberArk: %s with data: %s", self.url, data)
-                resp = requests.post(
+                resp = httpx2.post(
                     self.url,
                     json=data,
                     headers={"Content-Type": "application/json"},
@@ -78,16 +74,14 @@ class CyberArkVault(BaseVault, AesEncryptor):
             except Exception as e:
                 retry -= 1
                 if retry == 0:
-                    raise e
+                    raise
                 else:
-                    LOG.error("CyberArk request error: {}".format(e))
+                    LOG.error(f"CyberArk request error: {e}")
         return None
 
     def get_password(self, object=None, **kwargs):
         """Return a cached CyberArk password, optionally URL-encoded."""
-        key_for_cache = "{app_id};{safe};{folder};{key};{object}".format(
-            app_id=self.app_id, safe=self.safe, folder=self.folder, key=self.key, object=object
-        )
+        key_for_cache = f"{self.app_id};{self.safe};{self.folder};{self.key};{object}"
         if key_for_cache not in self._cached:
             kwargs.update(object if isinstance(object, dict) else {"object": object})
             url_quote = kwargs.get("url_encode", True)
@@ -97,20 +91,20 @@ class CyberArkVault(BaseVault, AesEncryptor):
                 pwd = urlquote(pwd)
             self._cached[key_for_cache] = pwd
         else:
-            LOG.debug("Using cached CyberArk key: %s" % key_for_cache)
+            LOG.debug(f"Using cached CyberArk key: {key_for_cache}")
 
         return self._cached[key_for_cache]
 
 
 def main():
     """Small self-test scaffold for the CyberArk vault."""
-    cfg_cyberark = dict(
-        url="https://localhost/pidms/rest/pwd/getPassword",  # to fill properly
-        app_id="",
-        safe="",
-        folder="root",
-        key="",
-    )
+    cfg_cyberark = {
+        "url": "https://localhost/pidms/rest/pwd/getPassword",  # to fill properly
+        "app_id": "",
+        "safe": "",
+        "folder": "root",
+        "key": "",
+    }
     # from ...settings import SETTINGS
     # cfg_cyberark = SETTINGS.config['CYBERARK_CONFIG']
     vault = CyberArkVault(**cfg_cyberark)

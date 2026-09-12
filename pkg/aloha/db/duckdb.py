@@ -10,7 +10,7 @@ from aloha.logger import LOG
 
 __all__ = ("DuckOperator",)
 
-LOG.debug("duckdb version = %s, duckdb_engine = %s " % (duckdb.__version__, duckdb_engine.__version__))
+LOG.debug(f"duckdb version = {duckdb.__version__}, duckdb_engine = {duckdb_engine.__version__} ")
 
 
 class DuckOperator:
@@ -57,7 +57,7 @@ class DuckOperator:
             LOG.debug(msg)
         except Exception as e:
             LOG.exception(e)
-            raise RuntimeError("Failed to connect to DuckDB")
+            raise RuntimeError("Failed to connect to DuckDB") from e
 
     def _prepare_database(self):
         """Prepare the database file and its parent directory."""
@@ -72,7 +72,7 @@ class DuckOperator:
                 parent_dir.mkdir(parents=True, exist_ok=True)
                 LOG.debug(f"Created directory: {parent_dir}")
             except Exception as e:
-                raise RuntimeError(f"Failed to create directory '{parent_dir}': {e}")
+                raise RuntimeError(f"Failed to create directory '{parent_dir}': {e}") from e
 
         if not path_obj.exists():
             if self._config["read_only"]:
@@ -81,7 +81,7 @@ class DuckOperator:
                 LOG.debug(f"Database file not found, creating: {path}")
                 duckdb.connect(path).close()
             except Exception as e:
-                raise RuntimeError(f"Failed to create database file '{path}': {e}")
+                raise RuntimeError(f"Failed to create database file '{path}': {e}") from e
 
     def _initialize_schema(self):
         """Create or select the requested schema."""
@@ -101,7 +101,7 @@ class DuckOperator:
 
             self.engine.connect().execute(text(f"SET schema '{self._config['schema']}'"))
         except Exception as e:
-            raise RuntimeError(f"Failed to initialize schema: {e}")
+            raise RuntimeError(f"Failed to initialize schema: {e}") from e
 
     @property
     def connection(self):

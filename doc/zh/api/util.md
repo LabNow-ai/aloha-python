@@ -16,7 +16,7 @@
 
 ## 时间工具 (`aloha.util.time`)
 
-该模块提供用于包装函数调用（如通过 `requests` 或 `httpx` 发起外部 HTTP 请求）的超时控制工具，并在操作成功或失败（超时/异常）时触发可选的回调函数。
+该模块提供用于包装函数调用（如通过 `httpx2` 发起外部 HTTP 请求）的超时控制工具，并在操作成功或失败（超时/异常）时触发可选的回调函数。
 
 ### 核心函数
 - `run_with_timeout`: 以同步方式运行函数，并应用超时限制。
@@ -25,7 +25,7 @@
 ### 使用示例
 ```python
 from aloha.util.time import run_with_timeout
-import requests
+import httpx2
 
 def success_callback(response):
     print("请求成功:", response.status_code)
@@ -36,7 +36,7 @@ def fail_callback(exception):
 # 同步超时包装调用
 try:
     run_with_timeout(
-        requests.get,
+        httpx2.get,
         2.5,  # 2.5 秒超时限制
         "https://httpbin.org/delay/1",
         fn_callback_success=success_callback,

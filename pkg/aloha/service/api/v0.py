@@ -5,8 +5,10 @@ request bodies are passed directly to the handler method and the response is
 serialized as a JSON object with a `code` and `message` field.
 """
 
+import json
 import logging
 from abc import ABC
+from typing import ClassVar
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -14,7 +16,7 @@ from fastapi.responses import JSONResponse
 from ..http import AbstractApiClient
 from ..http.base_api_handler import AbstractApiHandler as BaseHandler
 
-__all__ = ("APIHandler", "APICaller", "create_v0_router")
+__all__ = ("APICaller", "APIHandler", "create_v0_router")
 
 
 class APIHandler(BaseHandler, ABC):
@@ -24,7 +26,7 @@ class APIHandler(BaseHandler, ABC):
     and returns a Python object that can be JSON-serialized.
     """
 
-    MAP_ERROR_INFO = {"BAD_REQUEST": {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}}
+    MAP_ERROR_INFO: ClassVar[dict] = {"BAD_REQUEST": {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}}
 
     async def post(self, *args, **kwargs):
         """Parse the request body, call :meth:`response`, and return JSON."""
@@ -33,13 +35,13 @@ class APIHandler(BaseHandler, ABC):
         if req_body is not None:
             kwargs.update(req_body)
 
-        resp = dict(code=5200, message=["success"])
+        resp = {"code": 5200, "message": ["success"]}
         try:
             result = self.response(*args, **kwargs)
             resp["data"] = result
         except Exception as e:
             if self.LOG.level == logging.DEBUG:
-                self.LOG.error(e, exc_info=True)
+                self.LOG.exception("Error processing POST request")
             return self.finish({"code": 5201, "message": [repr(e)]})
 
         return self.finish(resp)
@@ -47,13 +49,13 @@ class APIHandler(BaseHandler, ABC):
     async def get(self, *args, **kwargs):
         """Handle GET request (useful for some v0 endpoints)."""
         kwargs.update(self.request_param)
-        resp = dict(code=5200, message=["success"])
+        resp = {"code": 5200, "message": ["success"]}
         try:
             result = self.response(*args, **kwargs)
             resp["data"] = result
         except Exception as e:
             if self.LOG.level == logging.DEBUG:
-                self.LOG.error(e, exc_info=True)
+                self.LOG.exception("Error processing GET request")
             return self.finish({"code": 5201, "message": [repr(e)]})
         return self.finish(resp)
 
@@ -75,17 +77,17 @@ def create_v0_router(handler_class):
         # Get body for POST
         try:
             body = await request.json()
-        except Exception:
+        except (json.JSONDecodeError, ValueError):
             body = {}
 
         kwargs.update(body)
-        resp = dict(code=5200, message=["success"])
+        resp = {"code": 5200, "message": ["success"]}
         try:
             result = handler.response(**kwargs)
             resp["data"] = result
         except Exception as e:
             if handler.LOG.level == logging.DEBUG:
-                handler.LOG.error(e, exc_info=True)
+                handler.LOG.exception("Error in handle_post")
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
         return JSONResponse(resp)
@@ -96,13 +98,13 @@ def create_v0_router(handler_class):
 
         # Get query params for GET
         kwargs.update(dict(request.query_params))
-        resp = dict(code=5200, message=["success"])
+        resp = {"code": 5200, "message": ["success"]}
         try:
             result = handler.response(**kwargs)
             resp["data"] = result
         except Exception as e:
             if handler.LOG.level == logging.DEBUG:
-                handler.LOG.error(e, exc_info=True)
+                handler.LOG.exception("Error in handle_get")
             return JSONResponse({"code": 5201, "message": [repr(e)]}, status_code=500)
 
         return JSONResponse(resp)

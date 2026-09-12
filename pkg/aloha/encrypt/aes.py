@@ -2,7 +2,7 @@
 
 import base64
 import binascii
-from typing import Callable, Optional, Union
+from collections.abc import Callable
 
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
@@ -22,7 +22,7 @@ def _generate_key(key_size: int, method="const") -> bytes:
         return b"0" * key_size  # b'b6046801716aec00'
     elif method == "random":
         return get_random_bytes(key_size)
-    raise ValueError("Invalid AES key generate method: [%s]" % method)
+    raise ValueError(f"Invalid AES key generate method: [{method}]")
 
 
 class AesEncryptor:
@@ -30,7 +30,7 @@ class AesEncryptor:
 
     supported_cipher_methods = _AES_CIPHER_METHODS
 
-    def __init__(self, key: Union[str, bytes] = None, key_size: int = 16, cipher_name: str = "AES/ECB/PKCS5Padding"):
+    def __init__(self, key: str | bytes | None = None, key_size: int = 16, cipher_name: str = "AES/ECB/PKCS5Padding"):
         """Initialize the AES key and cipher settings."""
         _key = key
         if key is None:
@@ -43,13 +43,13 @@ class AesEncryptor:
             24,
             32,
         ):
-            raise ValueError("Invalid key size/length [%s] for AesEncryptor!" % len(_key))
+            raise ValueError(f"Invalid key size/length [{len(_key)}] for AesEncryptor!")
 
         self.key_aes, self.block_size = _key, AES.block_size
         # https://pycryptodome.readthedocs.io/en/latest/src/util/util.html
         self.cipher_name = cipher_name
 
-    def encrypt(self, text: str, output_format="hex", func_pad: Optional[Callable] = None) -> Union[str, bytes]:
+    def encrypt(self, text: str, output_format="hex", func_pad: Callable | None = None) -> str | bytes:
         """Encrypt a UTF-8 string and return hex, base64, or raw bytes."""
         dict_params, pad_style = _AES_CIPHER_METHODS.get(self.cipher_name)
         if not callable(func_pad):
@@ -72,12 +72,12 @@ class AesEncryptor:
         elif output_format in ("bytes", "bin"):
             crypt = bytes_crypt
         else:
-            raise ValueError("Unknown output_type [%s]" % output_format)
+            raise ValueError(f"Unknown output_type [{output_format}]")
         return crypt
 
     def decrypt(
-        self, text: Union[str, bytes], input_format: str = "hex", func_unpad: Optional[Callable] = None
-    ) -> Union[str, bytes]:
+        self, text: str | bytes, input_format: str = "hex", func_unpad: Callable | None = None
+    ) -> str | bytes:
         """Decrypt ciphertext produced by :meth:`encrypt`."""
         text += (len(text) % 4) * "="
         if input_format == "hex":
@@ -87,7 +87,7 @@ class AesEncryptor:
         elif input_format in ("bytes", "bin"):
             crypt = text
         else:
-            raise ValueError("Unknown output_type [%s]" % input_format)
+            raise ValueError(f"Unknown output_type [{input_format}]")
         dict_params, pad_style = _AES_CIPHER_METHODS.get(self.cipher_name)
         cipher = AES.new(key=self.key_aes, **dict_params)
         data = cipher.decrypt(crypt)

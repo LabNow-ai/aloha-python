@@ -24,7 +24,7 @@ When developing Python code in this codebase, adhere to the following naming con
 
 The `aloha` package is divided into several specialized sub-modules. See their respective reference documents for detailed APIs and usage examples:
 
-- **[Configuration Management (`aloha.config`)](references/config.md)**: HOCON configuration loading, environment profile handling (`ENV_PROFILE`), and settings loading via `SETTINGS`.
+- **[Configuration Management (`aloha.config`)](references/config.md)**: HOCON configuration loading, environment profile handling (`PROFILE_ENV`, legacy `ENV_PROFILE` is deprecated), and settings loading via `SETTINGS`.
 - **[Logging Framework (`aloha.logger`)](references/logger.md)**: Safe concurrent multi-process logging, console handlers, and custom logger setups.
 - **[Encryption & Hashing (`aloha.encrypt`)](references/encrypt.md)**: AES encryption, RSA keys generation & signing/verifying, JWT encoding/decoding, and dictionary/object hashing helpers.
 - **[Testing Utilities (`aloha.testing`)](references/testing.md)**: Base `UnitTestCase` class with pre-configured settings/loggers, and `ServiceTestCase` for testing HTTP API endpoints.

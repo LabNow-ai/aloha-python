@@ -3,17 +3,18 @@
 import asyncio
 import concurrent.futures
 import inspect
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
-__all__ = ("run_with_timeout", "run_async_with_timeout")
+__all__ = ("run_async_with_timeout", "run_with_timeout")
 
 
 def run_with_timeout(
     func: Callable[..., Any],
     timeout_seconds: float,
     *args: Any,
-    fn_callback_success: Optional[Callable[[Any], Any]] = None,
-    fn_callback_fail: Optional[Callable[[Exception], Any]] = None,
+    fn_callback_success: Callable[[Any], Any] | None = None,
+    fn_callback_fail: Callable[[Exception], Any] | None = None,
     **kwargs: Any,
 ) -> Any:
     """Wrap a synchronous function call with a timeout.
@@ -30,7 +31,7 @@ def run_with_timeout(
             if fn_callback_success is not None:
                 fn_callback_success(result)
             return result
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             if isinstance(e, concurrent.futures.TimeoutError):
                 exc = TimeoutError(f"Operation timed out after {timeout_seconds} seconds")
             else:
@@ -44,8 +45,8 @@ async def run_async_with_timeout(
     func: Callable[..., Any],
     timeout_seconds: float,
     *args: Any,
-    fn_callback_success: Optional[Callable[[Any], Any]] = None,
-    fn_callback_fail: Optional[Callable[[Exception], Any]] = None,
+    fn_callback_success: Callable[[Any], Any] | None = None,
+    fn_callback_fail: Callable[[Exception], Any] | None = None,
     **kwargs: Any,
 ) -> Any:
     """Wrap an asynchronous function call (coroutine function or sync function inside executor) with a timeout.
@@ -67,7 +68,7 @@ async def run_async_with_timeout(
         if fn_callback_success is not None:
             fn_callback_success(result)
         return result
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if isinstance(e, (asyncio.TimeoutError, concurrent.futures.TimeoutError)):
             exc = TimeoutError(f"Operation timed out after {timeout_seconds} seconds")
         else:

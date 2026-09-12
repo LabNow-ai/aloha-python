@@ -21,7 +21,7 @@ dependencies = [
     "psutil",
     "pyjwt",
     "fastapi",
-    "httpx",
+    "httpx2",
     "uvicorn",
 
     # Extras: db

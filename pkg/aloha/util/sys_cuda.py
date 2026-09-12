@@ -13,10 +13,10 @@ def get_gpu_status_for_tf(*args, **kwargs) -> dict:
     try:
         import tensorflow as tf
 
-        LOG.info("tensorflow version = %s" % tf.__version__)
+        LOG.info(f"tensorflow version = {tf.__version__}")
         status = Status(version=tf.__version__, gpu_availability=tf.test.is_gpu_available())
-    except Exception as e:
-        msg = "Error detecting CUDA availability for tensorflow: %s" % str(e)
+    except Exception as e:  # noqa: BLE001
+        msg = f"Error detecting CUDA availability for tensorflow: {e!s}"
         LOG.warning(msg)
     return status._asdict()
 
@@ -26,10 +26,10 @@ def get_gpu_status_for_torch(*args, **kwargs) -> dict:
     try:
         import torch
 
-        LOG.info("torch version = %s" % torch.__version__)
+        LOG.info(f"torch version = {torch.__version__}")
         status = Status(version=torch.__version__, gpu_availability=torch.cuda.is_available())
-    except Exception as e:
-        msg = "Error detecting CUDA availability for torch: %s" % str(e)
+    except Exception as e:  # noqa: BLE001
+        msg = f"Error detecting CUDA availability for torch: {e!s}"
         LOG.warning(msg)
     return status._asdict()
 
@@ -39,11 +39,11 @@ def get_gpu_status_for_paddle(*args, **kwargs) -> dict:
     try:
         import paddle
 
-        LOG.info("Paddlepaddle version = %s" % paddle.__version__)
+        LOG.info(f"Paddlepaddle version = {paddle.__version__}")
         paddle.utils.run_check()
         status = Status(version=paddle.__version__, gpu_availability=True)
-    except Exception as e:
-        msg = "Error detecting CUDA availability for paddle: %s" % str(e)
+    except Exception as e:  # noqa: BLE001
+        msg = f"Error detecting CUDA availability for paddle: {e!s}"
         LOG.warning(msg)
     return status._asdict()
 

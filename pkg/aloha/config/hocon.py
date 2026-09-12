@@ -25,9 +25,7 @@ def patched_fixup_self_references(cls, config, accept_unresolved=False):
                     if prop_path[0] == key:
                         if isinstance(previous_item, ConfigValues) and not accept_unresolved:
                             raise ConfigSubstitutionException(
-                                "Property {variable} cannot be substituted. Check for cycles.".format(
-                                    variable=substitution.variable
-                                )
+                                f"Property {substitution.variable} cannot be substituted. Check for cycles."
                             )
                         else:
                             value = previous_item if len(prop_path) == 1 else previous_item.get(".".join(prop_path[1:]))
@@ -76,7 +74,7 @@ def load_config_from_hocon_files(config_files: list, base_dir: str):
     """
     s = []
     for config_file in config_files:
-        f = 'include required("%s")' % config_file
+        f = f'include required("{config_file}")'
         s.append(f)
     f = "\n".join(s)
 

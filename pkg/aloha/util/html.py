@@ -12,7 +12,7 @@ def extract_img_url(string):
         for ii in html:
             images = ii.xpath("p/img/@src")
             return images[0]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(e, string)
 
 

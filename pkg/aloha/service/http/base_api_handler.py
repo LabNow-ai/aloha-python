@@ -4,8 +4,8 @@ import asyncio
 import json
 import logging
 from abc import ABC
-from datetime import datetime
-from typing import Any, Dict, Optional
+from datetime import datetime, timezone
+from typing import Any, ClassVar
 
 from fastapi import APIRouter, Request, Response
 
@@ -20,14 +20,14 @@ class AbstractApiHandler(ABC):
     """
 
     LOG = LOG
-    MAP_ERROR_INFO: dict = {"BAD_REQUEST": {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}}
+    MAP_ERROR_INFO: ClassVar[dict] = {"BAD_REQUEST": {"code": "5101", "message": ["Bad request: fail to parse body as JSON object!"]}}
 
     def __init__(self):
         """Initialize request state used by subclasses."""
-        self.api_args: Optional[tuple] = None
-        self.api_kwargs: Optional[dict] = None
-        self._request: Optional[Request] = None
-        self._response: Optional[Response] = None
+        self.api_args: tuple | None = None
+        self.api_kwargs: dict | None = None
+        self._request: Request | None = None
+        self._response: Response | None = None
 
     def response(self, *args, **kwargs) -> dict:
         """Subclasses must implement the business response."""
@@ -44,14 +44,14 @@ class AbstractApiHandler(ABC):
     def request_id(self) -> str:
         """Return or create a request identifier for tracing."""
         if self._request is None:
-            return datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+            return datetime.now(tz=timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
         request_id = self._request.headers.get("Request-ID")
         if request_id is None:
-            request_id = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+            request_id = datetime.now(tz=timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
         return request_id
 
     @property
-    def request_body(self) -> Optional[dict]:
+    def request_body(self) -> dict | None:
         """Parse the request body as JSON or multipart form data."""
         content_type: str = self.request_header_content_type
 
@@ -88,7 +88,7 @@ class AbstractApiHandler(ABC):
 
         return ret
 
-    def get_request_files(self) -> Dict[str, list]:
+    def get_request_files(self) -> dict[str, list]:
         """Get uploaded files from multipart form data."""
         if self._request is None:
             return {}
@@ -106,11 +106,9 @@ class AbstractApiHandler(ABC):
 
     def set_header(self, key: str, value: str) -> None:
         """Set a response header (no-op in base class, overridden in FastAPI route)."""
-        pass
 
-    def set_status(self, status_code: int, reason: str = None) -> None:
+    def set_status(self, status_code: int, reason: str | None = None) -> None:
         """Set the response status code (no-op in base class)."""
-        pass
 
     async def _handle_request(self, request: Request, *args, **kwargs) -> Response:
         """Process the request and return a response."""
@@ -125,7 +123,7 @@ class AbstractApiHandler(ABC):
             return result
         except Exception as e:
             if self.LOG.level == logging.DEBUG:
-                self.LOG.error(e, exc_info=True)
+                self.LOG.exception("An internal error has occurred!")
             msgs = ["An internal error has occurred!", repr(e)]
             return self.finish({"code": 5201, "message": msgs}, status_code=500)
 

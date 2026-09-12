@@ -21,7 +21,7 @@ class ServiceTestCase(UnitTestCase, ABC, APICaller):
         :param kwargs: request data
         :return:
         """
-        url = "http://localhost:%s/%s" % (cls.api_url_port, api_url)
+        url = f"http://localhost:{cls.api_url_port}/{api_url}"
         # cls.LOG.debug("POST %s  %s" % (url, json.dumps(kwargs, ensure_ascii=False, sort_keys=True)))
         # resp = httpx2.post(
         #     url, json=kwargs, timeout=timeout, headers={'Content-Type': 'application/json'}

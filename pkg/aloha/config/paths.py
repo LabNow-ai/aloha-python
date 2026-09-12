@@ -2,7 +2,7 @@ import os
 import sys
 import warnings
 
-__all__ = ("get_resource_dir", "get_config_dir", "get_current_module_dir", "get_project_base_dir", "path_join")
+__all__ = ("get_config_dir", "get_current_module_dir", "get_project_base_dir", "get_resource_dir", "path_join")
 
 
 def path_join(*args) -> str:
@@ -88,7 +88,7 @@ def get_config_files() -> list:
         if profile_env is None:
             files_config = "main.conf"
         else:
-            files_config = "main-%s.conf" % profile_env
+            files_config = f"main-{profile_env}.conf"
 
     files = files_config.split(",")
     ret = []
@@ -96,9 +96,9 @@ def get_config_files() -> list:
     for f in files:
         file = get_config_dir(f)
         if not os.path.exists(file):
-            msgs.append("Expecting config file [%s] but it does not exists!" % file)
+            msgs.append(f"Expecting config file [{file}] but it does not exists!")
         else:
-            print("  ---> Loading config file [%s]" % file, file=sys.stderr)
+            print(f"  ---> Loading config file [{file}]", file=sys.stderr)
             ret.append(os.path.expandvars(f))
     if len(ret) == 0:
         msgs.append("No config files set properly, EMPTY config will be used!")

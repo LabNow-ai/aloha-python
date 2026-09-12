@@ -1,5 +1,4 @@
-"""Base HTTP client helpers for aloha API clients using httpx2."""
-
+import json
 import uuid
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
@@ -18,10 +17,10 @@ class AbstractApiClient(ABC):
     RETRY_STATUS_FORCELIST: frozenset = frozenset({413, 429, 503, 502, 504})
     config = SETTINGS.config
 
-    def __init__(self, url_endpoint: str = None, *args, **kwargs):
+    def __init__(self, url_endpoint: str | None = None, *args, **kwargs):
         """Store the endpoint used by the client."""
         self.url_endpoint = url_endpoint or ""
-        LOG.debug("API Caller URL endpoint set to: %s" % self.url_endpoint)
+        LOG.debug(f"API Caller URL endpoint set to: {self.url_endpoint}")
 
     def get_http_client(self, total_retries: int = 3, *args, **kwargs) -> httpx2.AsyncClient:
         """Create an httpx2 async client with retry support via custom transport."""
@@ -55,12 +54,12 @@ class AbstractApiClient(ABC):
         assert isinstance(data, dict), "Data object must be a dict!"
         raise NotImplementedError()
 
-    async def _async_call(self, api_url: str, data: dict = None, timeout: float = 5, **kwargs):
+    async def _async_call(self, api_url: str, data: dict | None = None, timeout: float = 5, **kwargs):
         """Async version: Call a remote API and return the parsed JSON response."""
-        body = data or dict()
+        body = data or {}
         body.update(kwargs)
         payload = self.wrap_request_data(data=body)
-        LOG.debug("Calling api: %s" % api_url)
+        LOG.debug(f"Calling api: {api_url}")
 
         async with self.get_http_client() as client:
             resp = await client.post(
@@ -69,13 +68,13 @@ class AbstractApiClient(ABC):
 
         try:
             ret = resp.json()
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError) as e:
             LOG.error(str(e))
             raise RuntimeError(resp.text)
 
         return ret
 
-    def call(self, api_url: str, data: dict = None, timeout: float = 5, **kwargs):
+    def call(self, api_url: str, data: dict | None = None, timeout: float = 5, **kwargs):
         """Call a remote API and return the parsed JSON response (sync wrapper)."""
         import asyncio
 

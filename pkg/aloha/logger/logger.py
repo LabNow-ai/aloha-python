@@ -41,9 +41,9 @@ def setup_logger(
         if logger_name is not None and len(logger_name) > 0:
             logger_name = logger_name.strip().replace(" ", "_")
 
-        path_file = [module, logger_name, socket.gethostname(), "p%s" % os.getpid()]  # module, logger_name, hostname, pid
+        path_file = [module, logger_name, socket.gethostname(), f"p{os.getpid()}"]  # module, logger_name, hostname, pid
         path_file = "_".join(str(i) for i in path_file if i is not None and len(str(i)) > 0)
-        path_file = pjoin(folder, "%s.log" % path_file)
+        path_file = pjoin(folder, f"{path_file}.log")
 
         file_handler = MultiProcessSafeDailyRotatingFileHandler(path_file)
         file_handler.setFormatter(formatter)

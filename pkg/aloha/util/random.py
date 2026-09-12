@@ -8,9 +8,9 @@ __all__ = (
     "random_choice",
     "random_int",
     "random_ratio",
-    "random_uniform",
     "random_sample",
     "random_seed",
+    "random_uniform",
 )
 
 random = SystemRandom()

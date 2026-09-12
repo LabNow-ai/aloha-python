@@ -10,7 +10,7 @@ import aiokafka.admin as kafka_admin
 
 from ..logger import LOG
 
-__all__ = ("KafkaOperator", "ConsumedMessage")
+__all__ = ("ConsumedMessage", "KafkaOperator")
 
 LOG.debug("kafka_aio: using aiokafka for async Kafka support")
 
@@ -39,7 +39,7 @@ class DummyMessage:
         return self._partition
 
 
-def _unpack_message(data: typing.Any) -> typing.Tuple[typing.Any, typing.Any, typing.Any]:
+def _unpack_message(data: typing.Any) -> tuple[typing.Any, typing.Any, typing.Any]:
     """Unpack data into (value, key, headers)."""
     if isinstance(data, dict):
         value = data.get("value")
@@ -56,7 +56,7 @@ def _unpack_message(data: typing.Any) -> typing.Tuple[typing.Any, typing.Any, ty
     return value, key, headers
 
 
-def _prepare_headers(headers: typing.Any) -> typing.List[typing.Tuple[str, bytes]] | None:
+def _prepare_headers(headers: typing.Any) -> list[tuple[str, bytes]] | None:
     if not headers:
         return None
     if isinstance(headers, dict):
@@ -108,10 +108,10 @@ class KafkaOperator:
         try:
             new_topic = kafka_admin.NewTopic(topic, num_partitions=num_partitions, replication_factor=replication_factor)
             await admin.create_topics([new_topic])
-            LOG.info("Topic {} created".format(topic))
+            LOG.info(f"Topic {topic} created")
             return True
-        except Exception as e:
-            LOG.error("Failed to create topic {}: {}".format(topic, e))
+        except Exception as e:  # noqa: BLE001
+            LOG.error(f"Failed to create topic {topic}: {e}")
             return False
 
     async def producer(self) -> kafka.AIOKafkaProducer:
@@ -136,9 +136,9 @@ class KafkaOperator:
             async def delivery_report(err, msg):
                 """Called once for each message produced to indicate delivery result."""
                 if err is not None:
-                    LOG.error("Kafka msg delivery failed: {}".format(err))
+                    LOG.error(f"Kafka msg delivery failed: {err}")
                 else:
-                    LOG.debug("Kafka msg delivered to {} [{}]".format(msg.topic(), msg.partition()))
+                    LOG.debug(f"Kafka msg delivered to {msg.topic()} [{msg.partition()}]")
 
             func_callback = delivery_report
 
@@ -157,14 +157,14 @@ class KafkaOperator:
                         await func_callback(None, DummyMessage(topic, metadata.partition))
                     else:
                         func_callback(None, DummyMessage(topic, metadata.partition))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 if func_callback is not None:
                     if inspect.iscoroutinefunction(func_callback):
                         await func_callback(e, None)
                     else:
                         func_callback(e, None)
                 else:
-                    LOG.error("Kafka msg delivery failed: {}".format(e))
+                    LOG.error(f"Kafka msg delivery failed: {e}")
 
     async def consumer_generator(
         self, topics_subscribe: list, group_id: str | None = None, poll_timeout: float = 1.0, *args, **kwargs
@@ -194,7 +194,7 @@ class KafkaOperator:
                         if isinstance(v, bytes):
                             try:
                                 v = v.decode("utf-8")
-                            except Exception:
+                            except UnicodeDecodeError:
                                 pass
                         headers.append((k, v))
 
@@ -206,7 +206,7 @@ class KafkaOperator:
                     value=msg.value,
                     headers=headers,
                 )
-                LOG.debug("Received message: {}".format(consumed_msg))
+                LOG.debug(f"Received message: {consumed_msg}")
                 yield consumed_msg
         finally:
             await consumer.stop()

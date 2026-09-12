@@ -1,8 +1,15 @@
 import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from aloha.db.kafka import (
+    ConsumedMessage,
+    KafkaOperator,
+    _prepare_headers,
+    _unpack_message,
+)
+from aloha.db.kafka_aio import ConsumedMessage as ConsumedMessageAio
+from aloha.db.kafka_aio import KafkaOperator as KafkaOperatorAio
 from aloha.testing.unit import UnitTestCase
-from aloha.db.kafka import KafkaOperator, ConsumedMessage, _unpack_message, _prepare_headers
-from aloha.db.kafka_aio import KafkaOperator as KafkaOperatorAio, ConsumedMessage as ConsumedMessageAio
 
 
 class TestKafkaHelpers(UnitTestCase):

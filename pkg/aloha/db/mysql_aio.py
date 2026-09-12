@@ -39,7 +39,7 @@ class MySqlOperator:
             LOG.debug("MySQL (async) connected: {host}:{port}/{dbname}".format(**self._config))
         except Exception as e:
             LOG.exception(e)
-            raise RuntimeError("Failed to connect to MySQL (async)")
+            raise RuntimeError("Failed to connect to MySQL (async)") from e
 
     @property
     def connection(self):

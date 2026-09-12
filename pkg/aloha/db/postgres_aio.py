@@ -44,7 +44,7 @@ class PostgresOperator:
             LOG.debug("PostgresSQL (async) connected: {host}:{port}/{dbname}".format(**self._config))
         except Exception as e:
             LOG.error(e)
-            raise RuntimeError("Failed to connect to PostgresSQL (async)")
+            raise RuntimeError("Failed to connect to PostgresSQL (async)") from e
 
     @property
     def connection(self):

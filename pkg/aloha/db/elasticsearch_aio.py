@@ -83,7 +83,7 @@ class ElasticSearchOperator:
             res = await self.es.indices.create(index=index_name or self.index_name, body=index_config or self.index_config)
             return res
         else:
-            msg = "Index [%s] already exits" % self.index_name
+            msg = f"Index [{self.index_name}] already exits"
             if raise_if_exist:
                 raise RuntimeError(msg)
             else:

@@ -35,12 +35,12 @@ def MongoOperator(config):
     collection_name = config.get("collection_name")
 
     _config = {k: v for k, v in config.items() if v is not None}
-    key = "%s:%s:%s" % (json.dumps(_config, sort_keys=True, ensure_ascii=False), db_name or "", collection_name or "")
+    key = "{}:{}:{}".format(json.dumps(_config, sort_keys=True, ensure_ascii=False), db_name or "", collection_name or "")
 
     if key not in _conn:
         try:
             _conn[key] = _MongoDBOperation(_config, db_name=db_name, collection_name=collection_name)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
             return
     return _conn[key]
@@ -66,7 +66,7 @@ class _MongoDBOperation:
 
         password_vault = PasswordVault.get_vault_sync(config.get("vault_type"), config.get("vault_config"))
         _config = {
-            "host": "mongodb://%s" % ",".join(hosts),
+            "host": "mongodb://{}".format(",".join(hosts)),
             "port": config.get("port"),
             "replicaSet": replicaSet,
             "username": config["username"],
@@ -83,13 +83,13 @@ class _MongoDBOperation:
             self.db = self.conn[db_name]
             if self.collection_name is not None:
                 self.collection = self.db[self.collection_name]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def set_collection(self, collection_name):
         """Switch the active collection after verifying it exists."""
         if collection_name not in await self.db.list_collection_names():
-            raise Exception("Collection[%s] does not exist in [%s]" % (self.collection_name, self.db_name))
+            raise RuntimeError(f"Collection[{self.collection_name}] does not exist in [{self.db_name}]")
         self.collection_name = collection_name
         self.collection = self.db[self.collection_name]
         return True
@@ -104,7 +104,7 @@ class _MongoDBOperation:
         if collection_name is not None and collection_name != self.collection_name:
             if self.collection_name not in await self.db.list_collection_names():
                 if raise_if_not_exists:
-                    raise Exception("Collection [%s] does not exist in [%s]" % (self.collection_name, self.db_name))
+                    raise RuntimeError(f"Collection [{self.collection_name}] does not exist in [{self.db_name}]")
                 else:
                     pass
 
@@ -118,7 +118,7 @@ class _MongoDBOperation:
         try:
             collection = await self.check_and_get_collection(collection_name)
             return await collection.insert_many(doc_or_docs, check_keys=check_keys) if isinstance(doc_or_docs, list) else await collection.insert_one(doc_or_docs)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def insert_many(self, docs, collection_name=None):
@@ -126,7 +126,7 @@ class _MongoDBOperation:
         try:
             collection = await self.check_and_get_collection(collection_name)
             return await collection.insert_many(docs)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def insert_one(self, doc, collection_name=None):
@@ -134,7 +134,7 @@ class _MongoDBOperation:
         try:
             collection = await self.check_and_get_collection(collection_name)
             return await collection.insert_one(doc)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def delete_many(self, field_filter, collection_name=None):
@@ -142,7 +142,7 @@ class _MongoDBOperation:
         try:
             collection = await self.check_and_get_collection(collection_name)
             return await collection.delete_many(filter=field_filter)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def delete_one(self, field_filter, collection_name=None):
@@ -150,7 +150,7 @@ class _MongoDBOperation:
         try:
             collection = await self.check_and_get_collection(collection_name)
             return await collection.delete_one(filter=field_filter)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def update_one(
@@ -177,7 +177,7 @@ class _MongoDBOperation:
                 session=session,
             )
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
             return False
 
@@ -204,7 +204,7 @@ class _MongoDBOperation:
                 array_filters=array_filters,
                 session=session,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def query(self, field_filter=None, sort=None, limit=40, skip=0, collection_name=None):
@@ -216,7 +216,7 @@ class _MongoDBOperation:
             else:
                 cursor = collection.find(field_filter or {}).skip(skip).limit(limit)
             return await cursor.to_list(length=limit)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def find_many(self, field_filter=None, projection=None, collection_name=None, *args, **kwargs):
@@ -225,7 +225,7 @@ class _MongoDBOperation:
             collection = await self.check_and_get_collection(collection_name)
             cursor = collection.find(field_filter or {}, projection, *args, **kwargs)
             return await cursor.to_list(length=None)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def find_one(self, field_filter=None, projection=None, collection_name=None, *args, **kwargs):
@@ -233,7 +233,7 @@ class _MongoDBOperation:
         try:
             collection = await self.check_and_get_collection(collection_name)
             return await collection.find_one(field_filter or {}, projection, *args, **kwargs)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def count(self, field_filter=None, collection_name=None):
@@ -241,15 +241,15 @@ class _MongoDBOperation:
         try:
             collection = await self.check_and_get_collection(collection_name)
             return await collection.count_documents(field_filter or {})
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             LOG.exception(e)
 
     async def check_connected(self):
         """Check if the connection is still active."""
         try:
             await self.conn.admin.command("ping")
-        except Exception:
-            raise NameError("MongoDB: not connected")
+        except Exception as e:
+            raise NameError("MongoDB: not connected") from e
 
     async def close(self):
         """Close the MongoDB connection."""

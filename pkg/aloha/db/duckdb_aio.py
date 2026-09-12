@@ -6,8 +6,8 @@ from pathlib import Path
 
 import duckdb
 import duckdb_engine
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from aloha.logger import LOG
 
@@ -58,7 +58,7 @@ class DuckOperator:
             LOG.debug("DuckDB (async) connected: {path} [schema={schema}, read_only={read_only}]".format(**self._config))
         except Exception as e:
             LOG.exception(e)
-            raise RuntimeError("Failed to connect to DuckDB (async)")
+            raise RuntimeError("Failed to connect to DuckDB (async)") from e
 
     def _prepare_database(self):
         """Prepare the database file and its parent directory."""
@@ -73,7 +73,7 @@ class DuckOperator:
                 parent_dir.mkdir(parents=True, exist_ok=True)
                 LOG.debug(f"Created directory: {parent_dir}")
             except Exception as e:
-                raise RuntimeError(f"Failed to create directory '{parent_dir}': {e}")
+                raise RuntimeError(f"Failed to create directory '{parent_dir}': {e}") from e
 
         if not path_obj.exists():
             if self._config["read_only"]:
@@ -82,7 +82,7 @@ class DuckOperator:
                 LOG.debug(f"Database file not found, creating: {path}")
                 duckdb.connect(path).close()
             except Exception as e:
-                raise RuntimeError(f"Failed to create database file '{path}': {e}")
+                raise RuntimeError(f"Failed to create database file '{path}': {e}") from e
 
     @property
     def connection(self):

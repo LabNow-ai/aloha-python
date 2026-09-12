@@ -80,7 +80,7 @@ except (ImportError, ModuleNotFoundError):
     pass
 
 try:
-    from .kafka import KafkaOperator, ConsumedMessage
+    from .kafka import ConsumedMessage, KafkaOperator
 except (ImportError, ModuleNotFoundError):
     pass
 
@@ -129,7 +129,8 @@ except (ImportError, ModuleNotFoundError):
     pass
 
 try:
-    from .kafka_aio import KafkaOperator as KafkaOperatorAio, ConsumedMessage as ConsumedMessageAio
+    from .kafka_aio import ConsumedMessage as ConsumedMessageAio
+    from .kafka_aio import KafkaOperator as KafkaOperatorAio
 except (ImportError, ModuleNotFoundError):
     pass
 
@@ -149,28 +150,28 @@ except (ImportError, ModuleNotFoundError):
     pass
 
 __all__ = (
+    "ConsumedMessage",
+    "ConsumedMessageAio",
+    "DuckOperator",
+    "DuckOperatorAio",
+    "ElasticSearchOperator",
+    "ElasticSearchOperatorAio",
+    "KafkaOperator",
+    "KafkaOperatorAio",
+    "MongoOperator",
+    "MongoOperatorAio",
+    "MySqlOperator",
+    "MySqlOperatorAio",
+    "OracledbOperator",
+    "OracledbOperatorAio",
+    "PasswordVault",
+    "PasswordVaultAio",
     # Sync operators
     "PostgresOperator",
-    "MySqlOperator",
-    "RedisOperator",
-    "MongoOperator",
-    "ElasticSearchOperator",
-    "KafkaOperator",
-    "ConsumedMessage",
-    "SqliteOperator",
-    "DuckOperator",
-    "OracledbOperator",
-    "PasswordVault",
     # Async operators (aliased)
     "PostgresOperatorAio",
-    "MySqlOperatorAio",
+    "RedisOperator",
     "RedisOperatorAio",
-    "MongoOperatorAio",
-    "ElasticSearchOperatorAio",
-    "KafkaOperatorAio",
-    "ConsumedMessageAio",
+    "SqliteOperator",
     "SqliteOperatorAio",
-    "DuckOperatorAio",
-    "OracledbOperatorAio",
-    "PasswordVaultAio",
 )

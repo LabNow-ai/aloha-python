@@ -9,7 +9,7 @@ import confluent_kafka.admin as kafka_admin
 
 from ..logger import LOG
 
-__all__ = ("KafkaOperator", "ConsumedMessage")
+__all__ = ("ConsumedMessage", "KafkaOperator")
 
 LOG.debug(f"Version of confluent_kafka client = {kafka.__version__}")
 
@@ -26,7 +26,7 @@ class ConsumedMessage:
     headers: list[tuple[str, str | bytes]] | None = None
 
 
-def _unpack_message(data: typing.Any) -> typing.Tuple[typing.Any, typing.Any, typing.Any]:
+def _unpack_message(data: typing.Any) -> tuple[typing.Any, typing.Any, typing.Any]:
     """Unpack data into (value, key, headers)."""
     if isinstance(data, dict):
         value = data.get("value")
@@ -43,7 +43,7 @@ def _unpack_message(data: typing.Any) -> typing.Tuple[typing.Any, typing.Any, ty
     return value, key, headers
 
 
-def _prepare_headers(headers: typing.Any) -> typing.List[typing.Tuple[str, bytes]] | None:
+def _prepare_headers(headers: typing.Any) -> list[tuple[str, bytes]] | None:
     if not headers:
         return None
     if isinstance(headers, dict):
@@ -117,7 +117,7 @@ class KafkaOperator:
         return self._producer
 
     def producer_deliver(
-        self, topic: str, generator: typing.Iterator[typing.Any], func_callback: callable = None, *args, **kwargs
+        self, topic: str, generator: typing.Iterator[typing.Any], func_callback: callable | None = None, *args, **kwargs
     ):
         """Stream messages from an iterator into a Kafka topic."""
         # func_callback should be a function that takes two arguments: err and msg
@@ -177,21 +177,21 @@ class KafkaOperator:
                     code = msg.error().code()
                     if code == kafka.KafkaError._PARTITION_EOF:
                         pass
-                    LOG.error("Kafka consumer: {}".format(msg.error()))
+                    LOG.error(f"Kafka consumer: {msg.error()}")
                     continue
 
                 val = msg.value()
                 if val is not None:
                     try:
                         val = val.decode("utf-8")
-                    except Exception:
+                    except UnicodeDecodeError:
                         pass
 
                 key = msg.key()
                 if key is not None:
                     try:
                         key = key.decode("utf-8")
-                    except Exception:
+                    except UnicodeDecodeError:
                         pass
 
                 raw_headers = msg.headers()
@@ -202,7 +202,7 @@ class KafkaOperator:
                         if isinstance(v, bytes):
                             try:
                                 v = v.decode("utf-8")
-                            except Exception:
+                            except UnicodeDecodeError:
                                 pass
                         headers.append((k, v))
 
@@ -214,7 +214,7 @@ class KafkaOperator:
                     value=val,
                     headers=headers,
                 )
-                LOG.debug("Received message: {}".format(consumed_msg))
+                LOG.debug(f"Received message: {consumed_msg}")
                 yield consumed_msg
         finally:
             c.close()

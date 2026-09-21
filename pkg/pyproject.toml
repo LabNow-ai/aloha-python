@@ -19,12 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-dependencies = [
-    "attrdict3",
-    "pyhocon",
-    "pycryptodome",
-    "packaging",
-]
+dependencies = ["attrdict3", "httpx2", "pyhocon", "pycryptodome", "packaging"]
 
 [project.urls]
 Homepage = "https://github.com/LabNow.ai/aloha-python"
@@ -37,7 +32,7 @@ aloha = "aloha.script.base:main"
 
 [project.optional-dependencies]
 build = ["Cython"]
-service = ["psutil", "pyjwt", "fastapi", "httpx2", "uvicorn"]
+service = ["psutil", "pyjwt", "fastapi", "uvicorn"]
 db = [
     "sqlalchemy",
     "psycopg[binary]",

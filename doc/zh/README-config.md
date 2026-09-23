@@ -36,6 +36,12 @@
 
 用于定义日志文件存储目录。
 
+### `deploy.log_format`
+
+*默认值*：`plain`。
+
+用于选择预定义日志格式。支持 `plain` 和 `json`。
+
 ### `DIR_RESOURCE`
 
 *默认值*：当前工作目录下的 `resource`。

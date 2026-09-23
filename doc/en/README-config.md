@@ -36,6 +36,12 @@ Define the application module name. It is mapped to config variable `APP_MODULE`
 
 Define where log files are stored.
 
+### `deploy.log_format`
+
+*Default value*: `plain`.
+
+Select the predefined log format. Supported values are `plain` and `json`.
+
 ### `DIR_RESOURCE`
 
 *Default value*: `resource` under the current working directory.

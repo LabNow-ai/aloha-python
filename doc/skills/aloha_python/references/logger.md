@@ -4,7 +4,7 @@ The `aloha.logger` subpackage provides a pre-configured, multi-process safe logg
 
 ## 1. Global Logger (`LOG`)
 
-The module exports a global pre-configured logger named `LOG`. It reads log levels from settings under `deploy.log_level` (falling back to `logging.DEBUG` if unset).
+The module exports a global pre-configured logger named `LOG`. It reads log levels from settings under `deploy.log_level` (falling back to `logging.DEBUG` if unset) and selects a predefined format from `deploy.log_format` (falling back to `plain`).
 
 ### Usage Example
 
@@ -43,6 +43,24 @@ logger_custom.info("Custom sync logger initialized.")
 ---
 
 ## 3. Implementation Details
+
+### Predefined formats
+
+Configure the format in HOCON:
+
+```hocon
+deploy = {
+    log_level = "INFO"
+    log_format = "json"
+}
+```
+
+Supported values are:
+
+- `plain`: the default format, `LEVEL> timestamp> module:line> message`.
+- `json`: one JSON object per line with `timestamp`, `level`, `logger`, `module`, `line`, and `message` fields. Exception and stack information are included when available.
+
+The `formatter_str` argument remains available for loggers that need a custom format. It takes precedence over `log_format`.
 
 - **Safe Concurrent File Writes**: Utilizes `MultiProcessSafeDailyRotatingFileHandler` to avoid lock conflicts or log corruption when multiple parallel processes write logs concurrently.
 - **Log Location**: Writes logs to the directory specified by the `DIR_LOG` environment variable (defaults to `logs/`).

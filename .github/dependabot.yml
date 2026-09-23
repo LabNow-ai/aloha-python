@@ -1,4 +1,4 @@
-# Please see the documentation for all configuration options:
+# See the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
@@ -6,6 +6,8 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    cooldown:
+      default-days: 7
     schedule:
       interval: "weekly"
       day: "sunday"
@@ -16,6 +18,8 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/pkg"
+    cooldown:
+      default-days: 7
     schedule:
       interval: "weekly"
       day: "sunday"
@@ -26,6 +30,8 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/src"
+    cooldown:
+      default-days: 7
     schedule:
       interval: "weekly"
       day: "sunday"

@@ -129,7 +129,7 @@ class APICaller(AbstractApiClient):
         """Wrap the payload with signature fields expected by v1 handlers."""
         if app_id is None:
             app_id = next(iter(self.APP_ID_KEYS.keys()))
-        salt_uuid = salt_uuid or str(uuid.uuid1())
+        salt_uuid = salt_uuid or str(uuid.uuid4())
         sign = sign or sign_data(
             salt_uuid=salt_uuid,
             app_id=app_id,

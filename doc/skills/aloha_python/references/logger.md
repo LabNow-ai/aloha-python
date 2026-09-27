@@ -57,7 +57,7 @@ deploy = {
 
 Supported values are:
 
-- `plain`: the default format, `LEVEL> timestamp> module:line> message`.
+- `plain`: the default format, with an aligned level prefix, timestamp, module, line, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
 - `json`: one JSON object per line with `timestamp`, `level`, `logger`, `module`, `line`, and `message` fields. Exception and stack information are included when available.
 
 The `formatter_str` argument remains available for loggers that need a custom format. It takes precedence over `log_format`.

@@ -2,12 +2,37 @@ import json
 import logging
 import os
 import socket
+from copy import copy
 from datetime import datetime, timezone
 from os.path import join as pjoin
 
 from .handler import MultiProcessSafeDailyRotatingFileHandler
 
-DEFAULT_LOG_FORMAT = "%(levelname)s> %(asctime)s> %(module)s:%(lineno)s> %(message)s"
+DEFAULT_LOG_FORMAT = "%(levelprefix)s %(asctime)s %(module)s %(lineno)s %(message)s"
+LEVEL_COLORS = {
+    5: "34",
+    logging.DEBUG: "36",
+    logging.INFO: "32",
+    logging.WARNING: "33",
+    logging.ERROR: "31",
+    logging.CRITICAL: "91",
+}
+
+
+class PlainFormatter(logging.Formatter):
+    """Format plain logs with an optional Uvicorn-style colored level prefix."""
+
+    def __init__(self, fmt: str, use_colors: bool = False):
+        super().__init__(fmt)
+        self.use_colors = use_colors
+
+    def formatMessage(self, record: logging.LogRecord) -> str:
+        record_copy = copy(record)
+        level_name = record_copy.levelname
+        if self.use_colors and record_copy.levelno in LEVEL_COLORS:
+            level_name = f"\x1b[{LEVEL_COLORS[record_copy.levelno]}m{level_name}\x1b[0m"
+        record_copy.__dict__["levelprefix"] = f"{level_name}:{' ' * (8 - len(record_copy.levelname))}"
+        return super().formatMessage(record_copy)
 
 
 class JsonFormatter(logging.Formatter):
@@ -15,9 +40,9 @@ class JsonFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         payload = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(timespec="milliseconds").replace(
-                "+00:00", "Z"
-            ),
+            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc)
+            .isoformat(timespec="milliseconds")
+            .replace("+00:00", "Z"),
             "level": record.levelname,
             "logger": record.name,
             "module": record.module,
@@ -31,12 +56,16 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, ensure_ascii=False)
 
 
-def get_formatter(log_format: str = "plain", formatter_str: str | None = None) -> logging.Formatter:
+def get_formatter(
+    log_format: str = "plain",
+    formatter_str: str | None = None,
+    use_colors: bool = False,
+) -> logging.Formatter:
     """Build a formatter from a predefined name or a custom format string."""
     if formatter_str:
         return logging.Formatter(formatter_str)
     if log_format == "plain":
-        return logging.Formatter(DEFAULT_LOG_FORMAT)
+        return PlainFormatter(DEFAULT_LOG_FORMAT, use_colors=use_colors)
     if log_format == "json":
         return JsonFormatter()
     raise ValueError(f"Unsupported log format: {log_format!r}. Choose 'plain' or 'json'.")
@@ -88,7 +117,12 @@ def setup_logger(
         logger.addHandler(file_handler)
 
         stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
+        stream_formatter = get_formatter(
+            log_format=log_format,
+            formatter_str=formatter_str,
+            use_colors=stream_handler.stream.isatty(),
+        )
+        stream_handler.setFormatter(stream_formatter)
         logger.addHandler(stream_handler)
 
         logger.setLevel(level)

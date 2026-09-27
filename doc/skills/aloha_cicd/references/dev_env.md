@@ -23,8 +23,9 @@ To guarantee environment consistency, local development is fully containerized. 
 - **User-Specific Port Mapping**: To prevent port clashes on shared, multi-user systems, host ports are computed dynamically using the user's numeric ID (`UID`):
   - **Application Port (`PORT_APP`)**: `30000 + UID` (exposes port 9000).
   - **Web Port (`PORT_WEB`)**: `33000 + UID` (exposes port 3000).
-- **Import Environments**: The container mounts the project root to `/root/app:rw` and automatically sets `PYTHONPATH=/root/app/pkg:/root/app/src:/root/app/notebook` for clean imports.
-- **Agent Credentials Mounts**: Volume-mounts local config directories (`~/.gemini`, `~/.claude`, `~/.copilot`) to keep credential cache and auth profiles active.
+- **Container User**: `run-dev.sh` reads the host UID and GID with `id -u` and `id -g`, then passes them to Compose. The container runs with that numeric UID/GID so files created in the workspace are owned by the host user. No `.env` file is needed; run the environment through `run-dev.sh`.
+- **Workspace and Imports**: The container mounts the project root to `/workspace:rw` and sets `PYTHONPATH=/workspace/pkg:/workspace/src:/workspace/notebook` for clean imports.
+- **Agent Credentials Mounts**: Local config directories (`~/.gemini`, `~/.claude`, `~/.copilot`, `~/.codex`) are mounted under `/home/<UID>` and `HOME` is set to that path so the non-root container user can access them.
 
 ---
 

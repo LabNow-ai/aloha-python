@@ -139,7 +139,9 @@ def setup_logger(
     logger_name: str | None = None,
     module: str | None = None,
     formatter_str: str | None = None,
-    log_format: str = "plain",
+    log_format: str | None = None,
+    log_format_file: str = "json",
+    log_format_stream: str = "plain",
     stream: TextIO | None = None,
     access_log: bool = False,
 ):
@@ -156,12 +158,16 @@ def setup_logger(
     :param logger_name: Name of the logger (optional)
     :param module: Module name for log file naming (optional)
     :param formatter_str: Custom log format string (optional)
-    :param log_format: Predefined format name, either ``plain`` or ``json``
+    :param log_format: Deprecated format override for both file and stream
+    :param log_format_file: Predefined format for the file handler
+    :param log_format_stream: Predefined format for the console handler
     :param stream: Console output stream (defaults to stderr)
     :param access_log: Use the access-log format and omit the source location
     """
     if not logger.handlers:
-        formatter = get_formatter(log_format=log_format, formatter_str=formatter_str, access_log=access_log)
+        if log_format is not None:
+            log_format_file = log_format
+            log_format_stream = log_format
 
         folder = os.environ.get("DIR_LOG", "logs")
         os.makedirs(folder, exist_ok=True)
@@ -179,13 +185,15 @@ def setup_logger(
         path_file = pjoin(folder, f"{path_file}.log")
 
         file_handler = MultiProcessSafeDailyRotatingFileHandler(path_file)
-        file_handler.setFormatter(formatter)
+        file_handler.setFormatter(
+            get_formatter(log_format=log_format_file, formatter_str=formatter_str, access_log=access_log)
+        )
         file_handler.addFilter(StackInfoFilter())
         logger.addHandler(file_handler)
 
         stream_handler = logging.StreamHandler(stream)
         stream_formatter = get_formatter(
-            log_format=log_format,
+            log_format=log_format_stream,
             formatter_str=formatter_str,
             use_colors=stream_handler.stream.isatty(),
             access_log=access_log,

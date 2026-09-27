@@ -15,26 +15,30 @@ from ..settings import SETTINGS
 
 cfg_deploy = SETTINGS.config.get("deploy", {})
 level_log = cfg_deploy.get("log_level", logging.DEBUG)
-format_log = cfg_deploy.get("log_format", "plain")
+format_file_log = cfg_deploy.get("log_format_file", "json")
+format_stream_log = cfg_deploy.get("log_format_stream", "plain")
 module_log = SETTINGS.config.get("APP_MODULE") or os.environ.get("APP_MODULE", "default")
 
-logger_uvicorn = get_logger(
-    "uvicorn",
-    level=level_log,
-    module=module_log,
-    log_format=format_log,
-)
-logger_uvicorn.propagate = False
+logger_uvicorn = logging.getLogger("uvicorn")
+logger_uvicorn.setLevel(level_log)
+for handler in logger_uvicorn.handlers[:]:
+    logger_uvicorn.removeHandler(handler)
+    handler.close()
+logger_uvicorn.propagate = True
 
 logger_uvicorn_error = logging.getLogger("uvicorn.error")
-logger_uvicorn_error.setLevel(logger_uvicorn.level)
+logger_uvicorn_error.setLevel(level_log)
+for handler in logger_uvicorn_error.handlers[:]:
+    logger_uvicorn_error.removeHandler(handler)
+    handler.close()
 logger_uvicorn_error.propagate = True
 
 logger_uvicorn_access = get_logger(
     "uvicorn.access",
     level=level_log,
     module=f"access_{module_log}",
-    log_format=format_log,
+    log_format_file=format_file_log,
+    log_format_stream=format_stream_log,
     stream=sys.stdout,
     access_log=True,
 )

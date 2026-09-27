@@ -4,7 +4,7 @@ The `aloha.logger` subpackage provides a pre-configured, multi-process safe logg
 
 ## 1. Global Logger (`LOG`)
 
-The module exports a global pre-configured logger named `LOG`. It reads log levels from settings under `deploy.log_level` (falling back to `logging.DEBUG` if unset) and selects a predefined format from `deploy.log_format` (falling back to `plain`).
+The module exports a global pre-configured logger named `LOG`. It reads log levels from settings under `deploy.log_level` (falling back to `logging.DEBUG` if unset). File and console formats are configured independently with `deploy.log_format_file` and `deploy.log_format_stream`; these default to `json` and `plain`, respectively.
 
 ### Usage Example
 
@@ -51,7 +51,8 @@ Configure the format in HOCON:
 ```hocon
 deploy = {
     log_level = "INFO"
-    log_format = "json"
+    log_format_file = "json"
+    log_format_stream = "plain"
 }
 ```
 
@@ -60,10 +61,10 @@ Supported values are:
 - `plain`: the default format, with an aligned level prefix, UTC ISO 8601 timestamp with millisecond precision (the same representation as the JSON `timestamp` field), `filename:lineno` source location, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
 - `json`: one JSON object per line with `timestamp`, `level`, `logger`, `source` (`filename:lineno`), and `message` fields. Exception information is included when available. WARNING and higher records also include a captured calling stack in `stack_info`.
 
-The `formatter_str` argument remains available for loggers that need a custom format. It takes precedence over `log_format`.
+The file format defaults to `json`; the console format defaults to `plain`. The console formatter adds colors when its output stream is a terminal. The deprecated `log_format` argument to `setup_logger` and `get_logger` remains available as an explicit override for both handlers. `formatter_str`, when provided, takes precedence over the selected formats for both handlers.
 
-- FastAPI/Uvicorn ordinary logs use the configured Aloha `deploy.log_level` and `deploy.log_format`, write to stderr, and are also written to the standard Aloha log file.
-- Uvicorn access logs write to stdout and an `access_<APP_MODULE>_...log` file. In plain mode they use Uvicorn's access format without a source location; in JSON mode the `source` field is omitted.
+- Aloha and FastAPI/Uvicorn ordinary logs share the root logger's stderr handler and one ordinary log file. Ordinary Uvicorn loggers propagate to the root instead of creating duplicate files.
+- Uvicorn access logs write to stdout and a separate `access_<APP_MODULE>_...log` file. Their file/console formats use the same independent settings; in plain mode they use Uvicorn's access format without a source location, and in JSON mode the `source` field is omitted.
 
 - **Safe Concurrent File Writes**: Utilizes `MultiProcessSafeDailyRotatingFileHandler` to avoid lock conflicts or log corruption when multiple parallel processes write logs concurrently.
 - **Log Location**: Writes logs to the directory specified by the `DIR_LOG` environment variable (defaults to `logs/`).

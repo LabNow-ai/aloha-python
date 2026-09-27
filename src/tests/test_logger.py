@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timezone
 
 import pytest
-from aloha.logger.logger import JsonFormatter, StackInfoFilter, get_formatter
+from aloha.logger.logger import JsonFormatter, StackInfoFilter, get_formatter, get_logger
 
 
 def test_plain_formatter_matches_uvicorn_default_format():
@@ -96,15 +96,77 @@ def test_setup_logger_routes_console_output_to_requested_stream(monkeypatch, tmp
     logger.handlers.clear()
     monkeypatch.setenv("DIR_LOG", str(tmp_path))
 
-    setup_logger(logger, logger_name="requested_stream_test", module="test", stream=stream)
+    setup_logger(
+        logger,
+        logger_name="requested_stream_test",
+        module="test",
+        stream=stream,
+        log_format_file="json",
+        log_format_stream="plain",
+    )
     logger.info("hello")
 
-    assert "hello" in stream.getvalue()
-    assert len(list(tmp_path.glob("test_requested_stream_test_*.log"))) == 1
+    assert stream.getvalue().startswith("INFO:     ")
+    assert stream.getvalue().endswith("hello\n")
+    files_log = list(tmp_path.glob("test_requested_stream_test_*.log"))
+    assert len(files_log) == 1
+    payload = json.loads(files_log[0].read_text().splitlines()[0])
+    assert payload["message"] == "hello"
+    assert payload["source"].startswith("test_logger.py:")
 
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
         handler.close()
+
+
+def test_ordinary_loggers_share_file_and_keep_stream_format_separate(monkeypatch, tmp_path):
+    stream_ordinary = io.StringIO()
+    stream_access = io.StringIO()
+    monkeypatch.setenv("DIR_LOG", str(tmp_path))
+    logger_ordinary = get_logger(
+        "ordinary_format_test",
+        module="app",
+        stream=stream_ordinary,
+        log_format_file="json",
+        log_format_stream="plain",
+    )
+    logger_uvicorn = logging.getLogger("ordinary_format_test.uvicorn")
+    logger_uvicorn.setLevel(logging.DEBUG)
+    logger_uvicorn.propagate = True
+    logger_access = get_logger(
+        "access_format_test",
+        module="access_app",
+        stream=stream_access,
+        access_log=True,
+        log_format_file="json",
+        log_format_stream="plain",
+    )
+    logger_access.propagate = False
+
+    try:
+        logger_ordinary.info("aloha ordinary")
+        logger_uvicorn.warning("uvicorn ordinary")
+        logger_access.info('%s - "%s %s HTTP/%s" %d', "127.0.0.1:1", "GET", "/", "1.1", 200)
+
+        files_log = list(tmp_path.glob("*.log"))
+        assert len(files_log) == 2
+        records_log = [json.loads(line) for path in files_log for line in path.read_text().splitlines()]
+        assert len(records_log) == 3
+        assert {record["message"] for record in records_log} == {
+            "aloha ordinary",
+            "uvicorn ordinary",
+            '127.0.0.1:1 - "GET / HTTP/1.1" 200',
+        }
+        assert "aloha ordinary" in stream_ordinary.getvalue()
+        assert "uvicorn ordinary" in stream_ordinary.getvalue()
+        assert "GET / HTTP/1.1" in stream_access.getvalue()
+        assert "source" not in next(record for record in records_log if record["logger"] == "access_format_test")
+    finally:
+        for logger in (logger_ordinary, logger_access):
+            for handler in logger.handlers[:]:
+                logger.removeHandler(handler)
+                handler.close()
+        logger_uvicorn.propagate = False
 
 
 def test_json_warning_records_include_stack_info():

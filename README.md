@@ -71,7 +71,7 @@ The global logger reads `deploy.log_level`, `deploy.log_format_file`, and `deplo
 | `aloha.testing` | Test utilities for unit tests and service API tests.                                                   |
 | `aloha compile` | Build selected Python modules as native extensions using Cython.                                       |
 
-Explore the [API documentation](https://aloha-python.readthedocs.io/en/latest/api/) or the detailed [Aloha Python Skill guide](doc/skills/aloha_python/SKILL.md).
+Explore the [API documentation](https://aloha-python.readthedocs.io/en/main/api/) or the detailed [Aloha Python Skill guide](doc/skills/aloha_python/SKILL.md).
 
 ## Use This Repository as a Service Template
 

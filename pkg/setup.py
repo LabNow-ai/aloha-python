@@ -1,6 +1,6 @@
 import os
 import shutil
-from datetime import datetime, timezone
+from datetime import datetime
 
 from setuptools import setup
 
@@ -17,7 +17,7 @@ if not os.path.exists(readme_path) and os.path.exists(root_readme):
 
 # 2. Dynamic Version Generation
 # Writes the version to aloha/_version.py using the current timestamp.
-_t = datetime.now(tz=timezone.utc)
+_t = datetime.now().astimezone()
 _version = f"{_t.year}.{_t.month:02d}{_t.day:02d}.{_t.hour:02d}{_t.minute:02d}"
 
 version_file_path = os.path.join(base_dir, "aloha", "_version.py")

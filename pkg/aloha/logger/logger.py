@@ -78,12 +78,14 @@ class PlainFormatter(logging.Formatter):
                 record_copy.message = record_copy.msg
             fields_extra = _get_extra_fields(record_copy)
             fields_extra.pop("logger", None)
-            if fields_extra:
-                msg_access = record_copy.getMessage()
-                fields_access = json.dumps(fields_extra, ensure_ascii=False, default=str)
-                record_copy.msg = f"{msg_access} {fields_access}"
-                record_copy.args = ()
-                record_copy.message = record_copy.msg
+            fields_extra.pop("pid", None)
+            fields_extra.pop("hostname", None)
+            fields_extra = {"pid": os.getpid(), "hostname": socket.gethostname(), **fields_extra}
+            msg_access = record_copy.getMessage()
+            fields_access = json.dumps(fields_extra, ensure_ascii=False, default=str)
+            record_copy.msg = f"{msg_access} {fields_access}"
+            record_copy.args = ()
+            record_copy.message = record_copy.msg
         return super().formatMessage(record_copy)
 
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
@@ -103,6 +105,8 @@ class JsonFormatter(logging.Formatter):
         payload = {
             "timestamp": _format_timestamp(record.created),
             "level": record.levelname,
+            "pid": os.getpid(),
+            "hostname": socket.gethostname(),
         }
         if self.include_logger:
             payload["logger"] = record.name
@@ -201,16 +205,15 @@ def setup_logger(
         if module is None:
             from ..settings import SETTINGS
 
-            module = SETTINGS.config.get("APP_MODULE") or os.environ.get("APP_MODULE", None)
+            module = SETTINGS.config.get("APP_MODULE") or os.environ.get("APP_MODULE")
+        module = module or "default"
 
-        if logger_name is not None and len(logger_name) > 0:
-            logger_name = logger_name.strip().replace(" ", "_")
+        path_file = pjoin(folder, f"{module}.log")
 
-        path_file = [module, logger_name, socket.gethostname(), f"p{os.getpid()}"]  # module, logger_name, hostname, pid
-        path_file = "_".join(str(i) for i in path_file if i is not None and len(str(i)) > 0)
-        path_file = pjoin(folder, f"{path_file}.log")
-
-        file_handler = MultiProcessSafeDailyRotatingFileHandler(path_file)
+        file_handler = MultiProcessSafeDailyRotatingFileHandler(
+            path_file,
+            filename_suffix=".access" if access_log else "",
+        )
         file_handler.setFormatter(
             get_formatter(log_format=log_format_file, formatter_str=formatter_str, access_log=access_log)
         )

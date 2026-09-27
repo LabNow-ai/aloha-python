@@ -59,12 +59,12 @@ deploy = {
 Supported values are:
 
 - `plain`: the default format, with an aligned level prefix, ISO 8601 timestamp with millisecond precision and the host's configured local UTC offset (the same representation as the JSON `timestamp` field), `filename:lineno` source location, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
-- `json`: one JSON object per line with `timestamp`, `level`, `logger`, `source` (`filename:lineno`), and `message` fields. Exception information is included when available. WARNING and higher records also include a captured calling stack in `stack_info`.
+- `json`: one JSON object per line with `timestamp`, `level`, `logger`, `pid`, `hostname`, `source` (`filename:lineno`), and `message` fields. `pid` and `hostname` identify the current Python process and runtime host. Exception information is included when available. WARNING and higher records also include a captured calling stack in `stack_info`.
 
 The file format defaults to `json`; the console format defaults to `plain`. The console formatter adds colors when its output stream is a terminal. The deprecated `log_format` argument to `setup_logger` and `get_logger` remains available as an explicit override for both handlers. `formatter_str`, when provided, takes precedence over the selected formats for both handlers.
 
 - Aloha and FastAPI/Uvicorn ordinary logs share the root logger's stderr handler and one ordinary log file. Ordinary Uvicorn loggers propagate to the root instead of creating duplicate files.
-- Uvicorn access logs write to stdout and a separate `access_<APP_MODULE>_...log` file. Their file/console formats use the same independent settings; in plain mode they use Uvicorn's access format without a source location, and in JSON mode the `source` and `logger` fields are omitted. Additional `LogRecord` fields are included in JSON output and appended as a JSON object in plain output.
+- Uvicorn access logs write to stdout and a separate `<APP_MODULE>_<YYYY-MMDD>.access.log` file. Their file/console formats use the same independent settings; in plain mode they use Uvicorn's access format without a source location and append `pid`, `hostname`, and additional `LogRecord` fields as a JSON object. In JSON mode the `source` and `logger` fields are omitted, while `pid`, `hostname`, and additional `LogRecord` fields are included.
 
 ### Parsing timestamps
 
@@ -86,10 +86,4 @@ SELECT CAST('2026-09-27T23:20:41.353+08:00' AS TIMESTAMPTZ) AS timestamp_log;
 
 - **Safe Concurrent File Writes**: Utilizes `MultiProcessSafeDailyRotatingFileHandler` to avoid lock conflicts or log corruption when multiple parallel processes write logs concurrently.
 - **Log Location**: Writes logs to the directory specified by the `DIR_LOG` environment variable (defaults to `logs/`).
-- **File Naming Format**: Log file names include:
-  - Application module (`APP_MODULE`)
-  - Logger name
-  - Hostname
-  - PID (Process ID)
-
-  Example: `app_module_default_hostname_p12345.log`
+- **File Naming Format**: Ordinary log files use `<APP_MODULE>_<YYYY-MMDD>.log`; access log files use `<APP_MODULE>_<YYYY-MMDD>.access.log`. If `APP_MODULE` is unset or empty, `default` is used. For example: `Aloha_2026-0927.log` and `Aloha_2026-0927.access.log`.

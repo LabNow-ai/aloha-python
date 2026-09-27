@@ -36,7 +36,7 @@ logger_uvicorn_error.propagate = True
 logger_uvicorn_access = get_logger(
     "uvicorn.access",
     level=level_log,
-    module=f"access_{module_log}",
+    module=module_log,
     log_format_file=format_file_log,
     log_format_stream=format_stream_log,
     stream=sys.stdout,

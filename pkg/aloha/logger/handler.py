@@ -10,9 +10,19 @@ class MultiProcessSafeDailyRotatingFileHandler(BaseRotatingHandler):
     - Utc not supported
     """
 
-    def __init__(self, filename: str, encoding="utf8", delay=False, utc=False, **kwargs):
+    def __init__(
+        self,
+        filename: str,
+        encoding="utf8",
+        delay=False,
+        utc=False,
+        date_format="%Y-%m%d",
+        filename_suffix="",
+        **kwargs,
+    ):
         self.utc = utc
-        self.suffix = "%Y-%m%d"
+        self.date_format = date_format
+        self.filename_suffix = filename_suffix
         self.baseFilename = filename
         self.currentFileName = self._compute_fn()
         BaseRotatingHandler.__init__(self, filename, "a", encoding, delay)
@@ -29,7 +39,13 @@ class MultiProcessSafeDailyRotatingFileHandler(BaseRotatingHandler):
             self.stream = self._open()
 
     def _compute_fn(self):
-        return self.baseFilename.replace(".log", "") + "_" + time.strftime(self.suffix, time.localtime()) + ".log"
+        return (
+            self.baseFilename.removesuffix(".log")
+            + "_"
+            + time.strftime(self.date_format, time.localtime())
+            + self.filename_suffix
+            + ".log"
+        )
 
     def _open(self):
         return open(self.currentFileName, mode=self.mode, encoding=self.encoding)

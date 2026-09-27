@@ -1,42 +1,87 @@
-# Introduction
+# Aloha: Python Microservice Library and Project Template
 
-Aloha! Thanks for your interest in this Python package.
+**Aloha is an open-source Python utility library and microservice boilerplate for building containerized services.** The `aloha` package brings together HOCON configuration, structured logging, database operators, encryption utilities, FastAPI/Uvicorn service helpers, and testing support.
 
+Use Aloha as a dependency in an existing Python application, or use the `aloha-python` repository as a Docker-ready starting point for a new microservice.
+
+[![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.org/project/aloha/)
+[![Build](https://img.shields.io/github/actions/workflow/status/LabNow-ai/aloha-python/build.yml?branch=main)](https://github.com/LabNow-ai/aloha-python/actions)
 [![License](https://img.shields.io/github/license/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/blob/main/LICENSE)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/LabNow-ai/aloha-python/build.yml?branch=main)](https://github.com/LabNow-ai/aloha-python/actions)
-[![Join the Gitter Chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/LabNow-ai/)
-[![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.python.org/pypi/aloha/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/aloha)](https://pepy.tech/badge/aloha/)
-[![Code Activity](https://img.shields.io/github/commit-activity/m/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/pulse)
-[![Recent Code Update](https://img.shields.io/github/last-commit/LabNow-ai/aloha-python.svg)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
-Please generously STAR our project or donate to us! [![GitHub Stars](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
+## What Aloha Provides
 
-The Python package `aloha` is a versatile toolkit for building Python microservices.
-It encapsulates commonly used components and features, such as:
+- **HOCON configuration** — Load modular configuration files and select profiles with environment variables.
+- **Service-ready logging** — Emit plain or JSON logs to the console and daily rotating files, including process and host metadata.
+- **Database connectivity** — Reusable operators and helpers for PostgreSQL, MySQL, SQLite, DuckDB, MongoDB, Redis, Elasticsearch, Oracle, and Kafka.
+- **Security utilities** — AES and RSA operations, JWT helpers, hashing, and password-vault integrations.
+- **Python web services** — FastAPI/Uvicorn application helpers and reusable HTTP service components.
+- **Testing and packaging tools** — Test helpers and an optional Cython-based command for building selected modules as native extensions.
+- **Containerized template** — A sample application, Dockerfiles, Docker Compose development environment, and CI/CD scripts.
 
-- Rapidly creating RESTful APIs and starting services
-- Logging utilities
-- Managing environments, configuration files, and resource files
-- Connecting to popular databases
-- Detecting and monitoring runtime environments
+## Install the Python Package
 
-## Installation
+Aloha requires Python 3.10 or later. Install the base package with pip:
 
-```title="Install aloha with extra requirements"
-pip install aloha[all]
+```bash
+python -m pip install aloha
 ```
 
-Notice that `[all]` after the package name is a set of extra requirements that enable additional features.
+Optional integrations are grouped as extras. Install only what your application needs:
 
-These extras include:
+```bash
+python -m pip install "aloha[service]"  # FastAPI and Uvicorn
+python -m pip install "aloha[db]"       # Database integrations
+python -m pip install "aloha[all]"      # All optional integrations and tools
+```
 
-- `all`: includes everything listed below
-- `service`: packages used to build RESTful APIs (`aloha` uses Tornado for services)
-- `build`: compile Python code into binary files, useful for source code protection
-- `db`: connect to popular databases, such as MySQL / PostgreSQL / Redis
-- `stream`: process stream data using `confluent_kafka`
-- `data`: process data or do data science tasks using packages like `pandas`
-- `report`: export data and reports to Excel files
-- `test`: unit test utilities
-- `docs`: documentation build utilities
+See [Installation and first steps](README-get-start.md) for more extras and a minimal usage example.
+
+## Choose Your Path
+
+### Add Aloha to an Existing Python Project
+
+Install the package, configure settings with HOCON, and import the modules you need:
+
+```python
+from aloha.logger import LOG
+
+LOG.info("Service is ready")
+```
+
+The global logger reads its level and file/console formats from the `deploy` HOCON settings. See the [configuration guide](README-config.md) and [logging reference](api/logging.md).
+
+### Start from the Microservice Template
+
+Clone the repository and start its development container:
+
+```bash
+git clone https://github.com/LabNow-ai/aloha-python.git
+cd aloha-python
+./tool/cicd/run-dev.sh up
+./tool/cicd/run-dev.sh enter
+```
+
+Inside the container:
+
+```bash
+cd /workspace/src
+python3 main.py app_common.main
+pytest ./
+```
+
+The `src/app_common/` application is an example to adapt for your service. Follow the [Getting Started guide](README-get-start.md) for setup and project structure.
+
+## Documentation
+
+- [Getting Started](README-get-start.md)
+- [Configuration and HOCON profiles](README-config.md)
+- [CLI commands](README-cli.md)
+- [12-Factor application guide](README-12factor.md)
+- [Development and Docker guide](README-develop.md)
+- [API reference](api/index.md)
+
+## Project and Community
+
+- [Source code on GitHub](https://github.com/LabNow-ai/aloha-python)
+- [PyPI package](https://pypi.org/project/aloha/)
+- [Report a bug or request a feature](https://github.com/LabNow-ai/aloha-python/issues)

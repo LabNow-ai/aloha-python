@@ -53,12 +53,10 @@ Run this command in your terminal:
 
 3. **Container Start**: Docker Compose starts the container with the following features:
    - **Volume Mounts**: Your local code directories are mounted into the container, enabling live development (changes on your host are immediately visible in the container):
-     - `doc/` → `/root/doc`
-     - `notebook/` → `/root/notebook`
-     - `src/` → `/root/src`
-     - `app/` → `/root/app`
+     - Project root → `/workspace`
    - **Port Forwarding**: Exposes ports for your application and web interface
    - **Persistent Process**: The container runs `tail -f /dev/null` to stay active
+   - **Container User**: Runs as the host user's UID/GID so files written under `/workspace` remain accessible to the host user.
 
 ### Step 2: Enter the Development Container
 
@@ -72,8 +70,8 @@ Once the environment is running, execute:
 
 - Uses `docker exec -it` to create an interactive terminal session
 - Attaches you to the running container with a bash shell
-- You'll be logged in as the root user inside the container
-- Your working directory will be `/root`
+- The shell runs with your host user's UID/GID
+- Your working directory will be `/workspace`
 
 **What you can do inside the container:**
 

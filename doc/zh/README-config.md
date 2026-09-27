@@ -36,6 +36,18 @@
 
 用于定义日志文件存储目录。
 
+### `deploy.log_format_file`
+
+*默认值*：`json`。
+
+用于选择日志文件的预定义格式。支持 `plain` 和 `json`。
+
+### `deploy.log_format_stream`
+
+*默认值*：`plain`。
+
+用于选择终端（stderr/stdout）日志的预定义格式。支持 `plain` 和 `json`；TTY 终端中的 plain 格式会按日志级别着色。
+
 ### `DIR_RESOURCE`
 
 *默认值*：当前工作目录下的 `resource`。

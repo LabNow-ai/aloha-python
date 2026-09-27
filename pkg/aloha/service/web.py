@@ -4,20 +4,45 @@ import json
 import logging
 import os
 import re
+import sys
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
-from ..logger import LOG
-from ..logger.logger import setup_logger
+from ..logger import LOG, get_logger
 from ..settings import SETTINGS
 
-setup_logger(
-    logging.getLogger("uvicorn.access"),
-    formatter_str="A> %(asctime)s> %(message)s",
-    module=f"access_{SETTINGS.config.get('APP_MODULE') or os.environ.get('APP_MODULE', 'default')}",
+cfg_deploy = SETTINGS.config.get("deploy", {})
+level_log = cfg_deploy.get("log_level", logging.DEBUG)
+format_file_log = cfg_deploy.get("log_format_file", "json")
+format_stream_log = cfg_deploy.get("log_format_stream", "plain")
+module_log = SETTINGS.config.get("APP_MODULE") or os.environ.get("APP_MODULE", "default")
+
+logger_uvicorn = logging.getLogger("uvicorn")
+logger_uvicorn.setLevel(level_log)
+for handler in logger_uvicorn.handlers[:]:
+    logger_uvicorn.removeHandler(handler)
+    handler.close()
+logger_uvicorn.propagate = True
+
+logger_uvicorn_error = logging.getLogger("uvicorn.error")
+logger_uvicorn_error.setLevel(level_log)
+for handler in logger_uvicorn_error.handlers[:]:
+    logger_uvicorn_error.removeHandler(handler)
+    handler.close()
+logger_uvicorn_error.propagate = True
+
+logger_uvicorn_access = get_logger(
+    "uvicorn.access",
+    level=level_log,
+    module=module_log,
+    log_format_file=format_file_log,
+    log_format_stream=format_stream_log,
+    stream=sys.stdout,
+    access_log=True,
 )
+logger_uvicorn_access.propagate = False
 
 
 def _load_routes(name: str) -> list[tuple[str, Any]]:
@@ -80,8 +105,8 @@ class FastAPIApplication:
                 self._register_handler(url, handler_class)
                 s_log_msg = f"Loaded API module {url:<50}"
                 if LOG.level < logging.INFO:
-                    s_log_msg += f"\t from class {handler_class!s}"
-                LOG.info(s_log_msg)
+                    s_log_msg += f" from class {handler_class!s}"
+                LOG.info(s_log_msg.strip())
 
     def _register_handler(self, url: str, handler_class):
         """Register a handler class as FastAPI routes based on its methods."""
@@ -229,7 +254,7 @@ class FastAPIApplication:
     def get_port(self) -> int:
         """Get the configured port."""
         service_settings = self.config.get("service", {})
-        port = service_settings.get("port") or int(os.environ.get("PORT_SVC", "8000"))
+        port = service_settings.get("port") or int(os.environ.get("PORT_SVC", "9000"))
         port = int(os.environ.get("PORT", port))
         return port
 

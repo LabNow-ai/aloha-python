@@ -5,10 +5,13 @@ ACTION="${1:-up}"
 
 USERNAME="$(whoami)"
 USERID="$(id -u)"
+GROUPID="$(id -g)"
 
 
 BASE_APP_PORT=30000
 BASE_WEB_PORT=33000
+export CONTAINER_UID="$USERID"
+export CONTAINER_GID="$GROUPID"
 export PORT_APP=$((BASE_APP_PORT + USERID))
 export PORT_WEB=$((BASE_WEB_PORT + USERID))
 export PROJECT_NAME="dev-app-demo-${USERNAME}"
@@ -43,7 +46,7 @@ require_ports_free() {
 
 # ---------- Action Dispatcher ----------
 echo "----------------------------------------"
-echo "User:            $USERNAME (UID: $USERID)"
+echo "User:            $USERNAME (UID: $USERID, GID: $GROUPID)"
 echo "Project Name:    $PROJECT_NAME"
 echo "Container:       $CONTAINER_NAME"
 echo "App Port Expose: $PORT_APP"

@@ -1,5 +1,6 @@
 """DuckDB connection helpers."""
 
+import re
 from pathlib import Path
 
 import duckdb
@@ -89,17 +90,21 @@ class DuckOperator:
             return
 
         try:
+            schema = self._config["schema"]
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", schema):
+                raise ValueError(f"Invalid schema name: {schema!r}")
+            schema_quoted = f'"{schema}"'
             if self._config["read_only"]:
                 result = self.engine.connext().execute(
                     text("SELECT schema_name FROM information_schema.schemata WHERE schema_name = :schema"),
-                    {"schema": self._config["schema"]},
+                    {"schema": schema},
                 )
                 if not result.fetchone():
-                    raise RuntimeError(f"Schema '{self._config['schema']}' does not exist and read_only=True")
+                    raise RuntimeError(f"Schema '{schema}' does not exist and read_only=True")
             else:
-                self.engine.connect().execute(text(f"CREATE SCHEMA IF NOT EXISTS {self._config['schema']}"))
+                self.engine.connect().exec_driver_sql(f"CREATE SCHEMA IF NOT EXISTS {schema_quoted}")
 
-            self.engine.connect().execute(text(f"SET schema '{self._config['schema']}'"))
+            self.engine.connect().exec_driver_sql(f"SET schema '{schema}'")
         except Exception as e:
             raise RuntimeError(f"Failed to initialize schema: {e}") from e
 

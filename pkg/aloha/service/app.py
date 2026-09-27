@@ -43,7 +43,8 @@ class Application:
                 host="0.0.0.0",
                 port=port,
                 workers=workers,
-                log_level="info",
+                log_config=None,
+                log_level=None,
                 access_log=True,
             )
             self._server = uvicorn.Server(config)

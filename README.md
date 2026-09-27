@@ -1,95 +1,116 @@
-# Aloha
+# Aloha: Python Utilities and Microservice Boilerplate
 
 [![License](https://img.shields.io/github/license/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/blob/main/LICENSE)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/LabNow-ai/aloha-python/build.yml?branch=main)](https://github.com/LabNow-ai/aloha-python/actions)
-[![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.python.org/pypi/aloha/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/aloha)](https://pepy.tech/badge/aloha/)
-[![Code Activity](https://img.shields.io/github/commit-activity/m/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/pulse)
-[![Recent Code Update](https://img.shields.io/github/last-commit/LabNow-ai/aloha-python.svg)](https://github.com/LabNow-ai/aloha-python/stargazers)
+[![Build](https://img.shields.io/github/actions/workflow/status/LabNow-ai/aloha-python/build.yml?branch=main)](https://github.com/LabNow-ai/aloha-python/actions)
+[![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.org/project/aloha/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/aloha)](https://pypi.org/project/aloha/)
+[![GitHub stars](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
-`aloha-python` is a modern project template (boilerplate) and a versatile utility library (`aloha` package) designed to build robust, containerized microservices in Python.
+**Aloha is an open-source Python utility library and microservice project template.** It helps Python teams build containerized services with HOCON configuration, structured and multi-process-safe logging, database integrations, encryption utilities, and pytest testing helpers.
 
----
+Use the installable **`aloha` package** to add common service-building utilities to an existing Python project, or use this repository as a **FastAPI/Uvicorn-oriented microservice boilerplate** with Docker-based development and deployment examples.
 
-Please generously STAR★ our project or donate to us!
-[![GitHub Starts](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
+- **Documentation:** [English](https://aloha-python.readthedocs.io/en/latest/) · [中文](https://aloha-python.readthedocs.io/zh/latest/)
+- **PyPI:** [aloha](https://pypi.org/project/aloha/)
+- **Issues and feature requests:** [GitHub Issues](https://github.com/LabNow-ai/aloha-python/issues)
 
-- To understand the package, read the [📚docs](https://aloha-python.readthedocs.io/) or [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/LabNow-ai/aloha-python)
+## Why Aloha?
 
-- To contribute or talk to a human: [![Open an Issue on GitHub](https://img.shields.io/github/issues/LabNow-ai/aloha-python)](https://github.com/LabNow-ai/aloha-python/issues) [![Join the Discord Chat](https://img.shields.io/badge/Discuss_on-Discord-green)](https://discord.gg/kHUzgQxgbJ) [![Join the Gitter Chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/LabNow-ai/)
+- **One library for common service foundations:** configuration, logging, database access, encryption, HTTP service helpers, and tests live in the `aloha` package.
+- **Configuration that fits deployments:** load modular HOCON files and apply environment-specific settings through `PROFILE_ENV`, `FILES_CONFIG`, and environment substitutions.
+- **Logs built for services:** write plain or JSON logs to console and daily rotating files, with a multi-process-safe file handler.
+- **Database integrations:** use SQLAlchemy-backed operators and helpers for PostgreSQL, MySQL, SQLite, DuckDB, MongoDB, Redis, Elasticsearch, Oracle, and Kafka.
+- **A practical microservice starting point:** the repository includes FastAPI/Uvicorn service examples, Dockerfiles, Docker Compose development setup, and pytest examples.
+- **Optional binary builds:** compile Python modules to native extensions with the `aloha compile` command and Cython.
 
----
+## Install
 
-## 🚀 Key Features
-
-- **Configuration Management (`aloha.config`)**: Lazy-loaded settings (`SETTINGS`) using HOCON (Human-Optimized Config Object Notation), supporting environment profile overrides (`PROFILE_ENV` / `FILES_CONFIG`, with legacy `ENV_PROFILE` deprecated) and environment variable injection.
-- **Concurrent-Safe Logging (`aloha.logger`)**: Multi-process safe daily rotating log file handler, console output, and automatic log paths configuration.
-- **Database Operators (`aloha.db`)**: Pre-built SQLAlchemy-backed connections for PostgreSQL, MySQL, SQLite, DuckDB, MongoDB, Redis, Elasticsearch, and Kafka, with password resolution via a secure `PasswordVault` wrapper.
-- **Encryption & Utilities (`aloha.encrypt`)**: Fast helpers for AES (ECB/CBC) encryption, RSA asymmetric key-pair generation/signatures, JWT encoding/decoding, and Base62 hashing.
-- **Testing Harness (`aloha.testing`)**: Extended `UnitTestCase` and integration `ServiceTestCase` structures for testing HTTP endpoints.
-- **Binary Code Protection (`aloha compile`)**: Utility compiler using Cython to package python source files (`.py`) into platform-native compiled dynamic libraries (`.so`/`.pyd`), protecting intellectual property.
-
----
-
-## 📁 Repository Layout
-
-- **[`src/`](src)**: Application-specific codebase, configuration files (`src/resource/config/`), and unit/integration tests (`src/tests/`).
-- **[`pkg/`](pkg)**: The core `aloha` utility library source code.
-- **[`tool/`](tool)**: Local CI/CD files and setup helpers (e.g. docker-compose configurations, lifecycle scripts).
-- **[`doc/`](doc)**: Documentation files and AI Agent Skills.
-- **[`notebook/`](notebook)**: Jupyter notebooks for interactive analysis.
-
----
-
-## 🛠️ Local Development Quick Start
-
-Local development is fully containerized using Docker & Docker Compose to maintain environment consistency.
-
-### 1. Launch Dev Container
-
-Run the lifecycle helper script:
+The base package supports Python 3.10 and later:
 
 ```bash
-# Check port availability and spin up the development container
-./tool/cicd/run-dev.sh up
+python -m pip install aloha
+```
 
-# Open an interactive terminal inside the container
+Install optional dependency groups for the capabilities you need:
+
+```bash
+python -m pip install "aloha[service]"  # FastAPI and Uvicorn helpers
+python -m pip install "aloha[db]"       # Database integrations
+python -m pip install "aloha[all]"      # All optional integrations and tools
+```
+
+## Quick Start
+
+Check the installed library version:
+
+```python
+from aloha import __version__
+
+print(__version__)
+```
+
+Use the shared application logger after configuring the service's HOCON settings:
+
+```python
+from aloha.logger import LOG
+
+LOG.info("Service is ready")
+```
+
+The global logger reads `deploy.log_level`, `deploy.log_format_file`, and `deploy.log_format_stream` from the loaded configuration. File logs default to JSON; console logs default to plain text. See the [logging guide](doc/skills/aloha_python/references/logger.md) for formats, fields, timestamps, and configuration details.
+
+## What Is Included?
+
+| Module          | What it helps with                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| `aloha.config`  | Load HOCON settings, profiles, and environment-based configuration.                                    |
+| `aloha.logger`  | Configure global and named loggers, JSON/plain output, and daily rotating logs.                        |
+| `aloha.db`      | Connect to supported SQL and service databases with reusable operators and password-vault integration. |
+| `aloha.encrypt` | Use AES, RSA, JWT, hashing, and password-vault helpers.                                                |
+| `aloha.service` | Build FastAPI/Uvicorn services and reusable HTTP API handlers.                                         |
+| `aloha.testing` | Test utilities for unit tests and service API tests.                                                   |
+| `aloha compile` | Build selected Python modules as native extensions using Cython.                                       |
+
+Explore the [API documentation](https://aloha-python.readthedocs.io/en/main/api/) or the detailed [Aloha Python Skill guide](doc/skills/aloha_python/SKILL.md).
+
+## Use This Repository as a Service Template
+
+The repository includes a runnable application example under `src/`, modular configuration under `src/resource/config/`, and Docker-based development helpers.
+
+Start the development container from the repository root:
+
+```bash
+./tool/cicd/run-dev.sh up
 ./tool/cicd/run-dev.sh enter
 ```
 
-_Note: Development ports (`PORT_APP` and `PORT_WEB`) are dynamically computed based on your User ID (`UID`) to avoid conflicts on shared servers._
-
-### 2. Run Tests
-
-Inside the running container terminal:
+Inside the container, run the example service and tests:
 
 ```bash
-# Execute pytest suite
-pytest src/
-
-# Run tests with code coverage report
-pytest --cov=src src/
+cd /workspace/src
+python3 main.py app_common.main
+pytest ./
 ```
 
-### 3. Production Packaging
-
-To build a production-ready Docker image with optional binary compilation enabled:
+To build a production Docker image from the repository root:
 
 ```bash
 source tool/tool.sh
 build_image app_common latest src/app-demo.Dockerfile
 ```
 
----
+See the [development and scaffolding guide](doc/skills/aloha_cicd/SKILL.md) for container lifecycle, configuration, ports, and production builds.
 
-## ✍️ Coding Guidelines
+## Repository Layout
 
-When developing in this project, variables should place their **type or primary characteristics/role prefix first**:
+- `pkg/` — source code and packaging metadata for the installable `aloha` library.
+- `src/` — example application, HOCON configuration, and tests.
+- `tool/` — Docker, Compose, and development lifecycle scripts.
+- `doc/` — user documentation, API references, and contributor skills.
+- `notebook/` — notebooks for interactive examples and experiments.
 
-- _Correct_: `name_service`, `port_service`, `svc_ingress`, `cfg_postgres`.
-- _Incorrect_: `service_name`, `service_port`, `ingress_service`, `postgres_config`.
+## Contributing
 
-For details on local setups, CI/CD specifications, and sub-module APIs, inspect our agent instruction files:
+Before changing code, review the repository [contributor guidelines](AGENTS.md) for coding, configuration, logging, and testing standards. See the [Aloha Python Skill](doc/skills/aloha_python/SKILL.md) for package development and the [Aloha CI/CD & Scaffolding Skill](doc/skills/aloha_cicd/SKILL.md) for local development and builds.
 
-- **[Aloha Python Skills Guide](doc/skills/aloha_python/SKILL.md)**
-- **[Aloha CI/CD & Scaffolding Guide](doc/skills/aloha_cicd/SKILL.md)**
+Contributions, bug reports, and feature requests are welcome via [GitHub Issues](https://github.com/LabNow-ai/aloha-python/issues).

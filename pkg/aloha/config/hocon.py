@@ -72,11 +72,13 @@ def load_config_from_hocon_files(config_files: list, base_dir: str):
     :param base_dir: Base directory for resolving relative paths
     :return: Configuration as an AttrDict object
     """
-    s = []
-    for config_file in config_files:
-        f = f'include required("{config_file}")'
-        s.append(f)
-    f = "\n".join(s)
-
-    config = ConfigFactory.parse_string(content=f, basedir=base_dir).as_plain_ordered_dict()
+    if len(config_files) == 0:
+        raise ValueError("Empty config files provided to load hocon config!")
+    elif len(config_files) == 1:
+        path_config = os.path.join(base_dir, config_files[0])
+        config = ConfigFactory.parse_file(path_config).as_plain_ordered_dict()
+    else:
+        s = [f'include required("{config_file}")' for config_file in config_files]
+        f = "\n".join(s)
+        config = ConfigFactory.parse_string(content=f, basedir=base_dir).as_plain_ordered_dict()
     return AttrDict(config)

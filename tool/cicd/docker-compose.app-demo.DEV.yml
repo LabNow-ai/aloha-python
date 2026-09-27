@@ -14,8 +14,9 @@ services:
     restart: unless-stopped
     # env_file: ["../credentials/DEV-app-demo.env"]
     environment:
-      # - PROFILE_ENV=${PROFILE_ENV:-DEV}
+      - PROFILE_ENV=${PROFILE_ENV:-DEV}
       - PROFILE_LOCALIZE=${PROFILE_LOCALIZE:-default}
+      - TZ=Asia/Shanghai
       - PYTHONPATH=/workspace/pkg:/workspace/src:/workspace/notebook
       - HOME=/home/${CONTAINER_UID:-0}
     user: "${CONTAINER_UID:-0}:${CONTAINER_GID:-0}"
@@ -23,7 +24,7 @@ services:
     working_dir: /workspace
     volumes:
       - ../../:/workspace:rw
-      # SSH
+      # SSH keys and config for git
       - "$HOME/.ssh:/home/${CONTAINER_UID:-0}/.ssh:rw"
       # AI4Coding tools:
       - "$HOME/.claude:/home/${CONTAINER_UID:-0}/.claude:rw"

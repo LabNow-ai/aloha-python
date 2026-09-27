@@ -58,13 +58,31 @@ deploy = {
 
 Supported values are:
 
-- `plain`: the default format, with an aligned level prefix, UTC ISO 8601 timestamp with millisecond precision (the same representation as the JSON `timestamp` field), `filename:lineno` source location, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
+- `plain`: the default format, with an aligned level prefix, ISO 8601 timestamp with millisecond precision and the host's configured local UTC offset (the same representation as the JSON `timestamp` field), `filename:lineno` source location, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
 - `json`: one JSON object per line with `timestamp`, `level`, `logger`, `source` (`filename:lineno`), and `message` fields. Exception information is included when available. WARNING and higher records also include a captured calling stack in `stack_info`.
 
 The file format defaults to `json`; the console format defaults to `plain`. The console formatter adds colors when its output stream is a terminal. The deprecated `log_format` argument to `setup_logger` and `get_logger` remains available as an explicit override for both handlers. `formatter_str`, when provided, takes precedence over the selected formats for both handlers.
 
 - Aloha and FastAPI/Uvicorn ordinary logs share the root logger's stderr handler and one ordinary log file. Ordinary Uvicorn loggers propagate to the root instead of creating duplicate files.
-- Uvicorn access logs write to stdout and a separate `access_<APP_MODULE>_...log` file. Their file/console formats use the same independent settings; in plain mode they use Uvicorn's access format without a source location, and in JSON mode the `source` field is omitted.
+- Uvicorn access logs write to stdout and a separate `access_<APP_MODULE>_...log` file. Their file/console formats use the same independent settings; in plain mode they use Uvicorn's access format without a source location, and in JSON mode the `source` and `logger` fields are omitted. Additional `LogRecord` fields are included in JSON output and appended as a JSON object in plain output.
+
+### Parsing timestamps
+
+Log timestamps are ISO 8601 strings with the runtime host's UTC offset, for example `2026-09-27T23:20:41.353+08:00`. Parse them as timezone-aware values to preserve the represented instant.
+
+In Python, `datetime.fromisoformat()` parses the offset into an aware `datetime`:
+
+```python
+from datetime import datetime
+
+timestamp_log = datetime.fromisoformat("2026-09-27T23:20:41.353+08:00")
+```
+
+In DuckDB, cast the string to `TIMESTAMPTZ`:
+
+```sql
+SELECT CAST('2026-09-27T23:20:41.353+08:00' AS TIMESTAMPTZ) AS timestamp_log;
+```
 
 - **Safe Concurrent File Writes**: Utilizes `MultiProcessSafeDailyRotatingFileHandler` to avoid lock conflicts or log corruption when multiple parallel processes write logs concurrently.
 - **Log Location**: Writes logs to the directory specified by the `DIR_LOG` environment variable (defaults to `logs/`).

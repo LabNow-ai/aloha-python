@@ -106,7 +106,7 @@ class FastAPIApplication:
                 s_log_msg = f"Loaded API module {url:<50}"
                 if LOG.level < logging.INFO:
                     s_log_msg += f" from class {handler_class!s}"
-                LOG.info(s_log_msg)
+                LOG.info(s_log_msg.strip())
 
     def _register_handler(self, url: str, handler_class):
         """Register a handler class as FastAPI routes based on its methods."""
@@ -254,7 +254,7 @@ class FastAPIApplication:
     def get_port(self) -> int:
         """Get the configured port."""
         service_settings = self.config.get("service", {})
-        port = service_settings.get("port") or int(os.environ.get("PORT_SVC", "8000"))
+        port = service_settings.get("port") or int(os.environ.get("PORT_SVC", "9000"))
         port = int(os.environ.get("PORT", port))
         return port
 

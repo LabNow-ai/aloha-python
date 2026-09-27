@@ -5,7 +5,7 @@ import os
 import socket
 import traceback
 from copy import copy
-from datetime import datetime, timezone
+from datetime import datetime
 from os.path import join as pjoin
 from typing import TextIO
 
@@ -21,10 +21,20 @@ LEVEL_COLORS = {
     logging.ERROR: "31",
     logging.CRITICAL: "91",
 }
+LOG_RECORD_FIELDS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
+    "message",
+    "asctime",
+    "levelprefix",
+    "source",
+}
 
 
 def _format_timestamp(timestamp: float) -> str:
-    return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return datetime.fromtimestamp(timestamp).astimezone().isoformat(timespec="milliseconds")
+
+
+def _get_extra_fields(record: logging.LogRecord) -> dict:
+    return {key: value for key, value in record.__dict__.items() if key not in LOG_RECORD_FIELDS}
 
 
 class PlainFormatter(logging.Formatter):
@@ -43,28 +53,37 @@ class PlainFormatter(logging.Formatter):
         record_copy.__dict__["levelprefix"] = f"{level_name}:{' ' * (8 - len(record_copy.levelname))}"
         if self.include_source:
             record_copy.__dict__["source"] = f"{record_copy.filename}:{record_copy.lineno}"
-        elif isinstance(record_copy.args, tuple) and len(record_copy.args) == 5:
-            client_addr, method, full_path, http_version, status_code = record_copy.args
-            try:
-                status_phrase = http.HTTPStatus(int(status_code)).phrase
-            except ValueError:
-                status_phrase = ""
-            status = f"{status_code} {status_phrase}".rstrip()
-            request_line = f"{method} {full_path} HTTP/{http_version}"
-            if self.use_colors:
-                request_line = f"\x1b[1m{request_line}\x1b[0m"
-                color_status = {
-                    1: "97",
-                    2: "32",
-                    3: "33",
-                    4: "31",
-                    5: "91",
-                }.get(int(status_code) // 100)
-                if color_status:
-                    status = f"\x1b[{color_status}m{status}\x1b[0m"
-            record_copy.msg = f'{client_addr} - "{request_line}" {status}'
-            record_copy.args = ()
-            record_copy.message = record_copy.msg
+        else:
+            if isinstance(record_copy.args, tuple) and len(record_copy.args) == 5:
+                client_addr, method, full_path, http_version, status_code = record_copy.args
+                try:
+                    status_phrase = http.HTTPStatus(int(status_code)).phrase
+                except ValueError:
+                    status_phrase = ""
+                status = f"{status_code} {status_phrase}".rstrip()
+                request_line = f"{method} {full_path} HTTP/{http_version}"
+                if self.use_colors:
+                    request_line = f"\x1b[1m{request_line}\x1b[0m"
+                    color_status = {
+                        1: "97",
+                        2: "32",
+                        3: "33",
+                        4: "31",
+                        5: "91",
+                    }.get(int(status_code) // 100)
+                    if color_status:
+                        status = f"\x1b[{color_status}m{status}\x1b[0m"
+                record_copy.msg = f'{client_addr} - "{request_line}" {status}'
+                record_copy.args = ()
+                record_copy.message = record_copy.msg
+            fields_extra = _get_extra_fields(record_copy)
+            fields_extra.pop("logger", None)
+            if fields_extra:
+                msg_access = record_copy.getMessage()
+                fields_access = json.dumps(fields_extra, ensure_ascii=False, default=str)
+                record_copy.msg = f"{msg_access} {fields_access}"
+                record_copy.args = ()
+                record_copy.message = record_copy.msg
         return super().formatMessage(record_copy)
 
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
@@ -74,24 +93,31 @@ class PlainFormatter(logging.Formatter):
 class JsonFormatter(logging.Formatter):
     """Format log records as JSON objects."""
 
-    def __init__(self, include_source: bool = True):
+    def __init__(self, include_source: bool = True, include_logger: bool = True, include_extra: bool = False):
         super().__init__()
         self.include_source = include_source
+        self.include_logger = include_logger
+        self.include_extra = include_extra
 
     def format(self, record: logging.LogRecord) -> str:
         payload = {
             "timestamp": _format_timestamp(record.created),
             "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
         }
+        if self.include_logger:
+            payload["logger"] = record.name
+        payload["message"] = record.getMessage()
         if self.include_source:
             payload["source"] = f"{record.filename}:{record.lineno}"
+        if self.include_extra:
+            for key, value in _get_extra_fields(record).items():
+                if key not in payload and (self.include_logger or key != "logger"):
+                    payload[key] = value
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
         if record.stack_info and record.levelno > logging.INFO:
             payload["stack_info"] = self.formatStack(record.stack_info)
-        return json.dumps(payload, ensure_ascii=False)
+        return json.dumps(payload, ensure_ascii=False, default=str)
 
 
 class StackInfoFilter(logging.Filter):
@@ -129,7 +155,7 @@ def get_formatter(
         format_log = DEFAULT_ACCESS_LOG_FORMAT if access_log else DEFAULT_LOG_FORMAT
         return PlainFormatter(format_log, use_colors=use_colors, include_source=not access_log)
     if log_format == "json":
-        return JsonFormatter(include_source=not access_log)
+        return JsonFormatter(include_source=not access_log, include_logger=not access_log, include_extra=access_log)
     raise ValueError(f"Unsupported log format: {log_format!r}. Choose 'plain' or 'json'.")
 
 

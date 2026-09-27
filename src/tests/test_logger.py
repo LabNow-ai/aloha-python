@@ -27,6 +27,23 @@ def test_plain_formatter_colors_level_prefix_when_enabled():
     assert output.endswith("worker.py:7 hello")
 
 
+def test_access_formatter_uses_uvicorn_style_without_source():
+    record = logging.LogRecord(
+        "uvicorn.access",
+        logging.INFO,
+        "h11_impl.py",
+        477,
+        '%s - "%s %s HTTP/%s" %d',
+        ("127.0.0.1:50430", "GET", "/", "1.1", 404),
+        None,
+    )
+
+    output = get_formatter(access_log=True).format(record)
+
+    assert output == 'INFO:     127.0.0.1:50430 - "GET / HTTP/1.1" 404 Not Found'
+    assert "h11_impl.py" not in output
+
+
 def test_json_formatter_outputs_structured_record():
     record = logging.LogRecord("worker", logging.INFO, "worker.py", 7, "hello %s", ("world",), None)
     record.created = datetime(2026, 9, 27, 13, 25, 45, 547000, tzinfo=timezone.utc).timestamp()
@@ -40,6 +57,15 @@ def test_json_formatter_outputs_structured_record():
     assert "module" not in payload
     assert "line" not in payload
     assert payload["message"] == "hello world"
+
+
+def test_json_access_formatter_omits_source():
+    record = logging.LogRecord("uvicorn.access", logging.INFO, "h11_impl.py", 477, "GET / 404", (), None)
+
+    payload = json.loads(get_formatter(log_format="json", access_log=True).format(record))
+
+    assert payload["message"] == "GET / 404"
+    assert "source" not in payload
 
 
 def test_warning_logs_include_stack_info():
@@ -60,6 +86,25 @@ def test_warning_logs_include_stack_info():
     assert "test_warning_logs_include_stack_info" in output
 
     logger.removeHandler(handler)
+
+
+def test_setup_logger_routes_console_output_to_requested_stream(monkeypatch, tmp_path):
+    from aloha.logger.logger import setup_logger
+
+    stream = io.StringIO()
+    logger = logging.getLogger("requested_stream_test")
+    logger.handlers.clear()
+    monkeypatch.setenv("DIR_LOG", str(tmp_path))
+
+    setup_logger(logger, logger_name="requested_stream_test", module="test", stream=stream)
+    logger.info("hello")
+
+    assert "hello" in stream.getvalue()
+    assert len(list(tmp_path.glob("test_requested_stream_test_*.log"))) == 1
+
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+        handler.close()
 
 
 def test_json_warning_records_include_stack_info():

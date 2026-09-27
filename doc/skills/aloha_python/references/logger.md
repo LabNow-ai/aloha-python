@@ -62,6 +62,9 @@ Supported values are:
 
 The `formatter_str` argument remains available for loggers that need a custom format. It takes precedence over `log_format`.
 
+- FastAPI/Uvicorn ordinary logs use the configured Aloha `deploy.log_level` and `deploy.log_format`, write to stderr, and are also written to the standard Aloha log file.
+- Uvicorn access logs write to stdout and an `access_<APP_MODULE>_...log` file. In plain mode they use Uvicorn's access format without a source location; in JSON mode the `source` field is omitted.
+
 - **Safe Concurrent File Writes**: Utilizes `MultiProcessSafeDailyRotatingFileHandler` to avoid lock conflicts or log corruption when multiple parallel processes write logs concurrently.
 - **Log Location**: Writes logs to the directory specified by the `DIR_LOG` environment variable (defaults to `logs/`).
 - **File Naming Format**: Log file names include:

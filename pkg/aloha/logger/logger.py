@@ -1,3 +1,4 @@
+import http
 import json
 import logging
 import os
@@ -6,10 +7,12 @@ import traceback
 from copy import copy
 from datetime import datetime, timezone
 from os.path import join as pjoin
+from typing import TextIO
 
 from .handler import MultiProcessSafeDailyRotatingFileHandler
 
 DEFAULT_LOG_FORMAT = "%(levelprefix)s %(asctime)s %(source)s %(message)s"
+DEFAULT_ACCESS_LOG_FORMAT = "%(levelprefix)s %(message)s"
 LEVEL_COLORS = {
     5: "34",
     logging.DEBUG: "36",
@@ -27,9 +30,10 @@ def _format_timestamp(timestamp: float) -> str:
 class PlainFormatter(logging.Formatter):
     """Format plain logs with an optional Uvicorn-style colored level prefix."""
 
-    def __init__(self, fmt: str, use_colors: bool = False):
+    def __init__(self, fmt: str, use_colors: bool = False, include_source: bool = True):
         super().__init__(fmt)
         self.use_colors = use_colors
+        self.include_source = include_source
 
     def formatMessage(self, record: logging.LogRecord) -> str:
         record_copy = copy(record)
@@ -37,7 +41,30 @@ class PlainFormatter(logging.Formatter):
         if self.use_colors and record_copy.levelno in LEVEL_COLORS:
             level_name = f"\x1b[{LEVEL_COLORS[record_copy.levelno]}m{level_name}\x1b[0m"
         record_copy.__dict__["levelprefix"] = f"{level_name}:{' ' * (8 - len(record_copy.levelname))}"
-        record_copy.__dict__["source"] = f"{record_copy.filename}:{record_copy.lineno}"
+        if self.include_source:
+            record_copy.__dict__["source"] = f"{record_copy.filename}:{record_copy.lineno}"
+        elif isinstance(record_copy.args, tuple) and len(record_copy.args) == 5:
+            client_addr, method, full_path, http_version, status_code = record_copy.args
+            try:
+                status_phrase = http.HTTPStatus(int(status_code)).phrase
+            except ValueError:
+                status_phrase = ""
+            status = f"{status_code} {status_phrase}".rstrip()
+            request_line = f"{method} {full_path} HTTP/{http_version}"
+            if self.use_colors:
+                request_line = f"\x1b[1m{request_line}\x1b[0m"
+                color_status = {
+                    1: "97",
+                    2: "32",
+                    3: "33",
+                    4: "31",
+                    5: "91",
+                }.get(int(status_code) // 100)
+                if color_status:
+                    status = f"\x1b[{color_status}m{status}\x1b[0m"
+            record_copy.msg = f'{client_addr} - "{request_line}" {status}'
+            record_copy.args = ()
+            record_copy.message = record_copy.msg
         return super().formatMessage(record_copy)
 
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
@@ -47,14 +74,19 @@ class PlainFormatter(logging.Formatter):
 class JsonFormatter(logging.Formatter):
     """Format log records as JSON objects."""
 
+    def __init__(self, include_source: bool = True):
+        super().__init__()
+        self.include_source = include_source
+
     def format(self, record: logging.LogRecord) -> str:
         payload = {
             "timestamp": _format_timestamp(record.created),
             "level": record.levelname,
             "logger": record.name,
-            "source": f"{record.filename}:{record.lineno}",
             "message": record.getMessage(),
         }
+        if self.include_source:
+            payload["source"] = f"{record.filename}:{record.lineno}"
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
         if record.stack_info and record.levelno > logging.INFO:
@@ -88,14 +120,16 @@ def get_formatter(
     log_format: str = "plain",
     formatter_str: str | None = None,
     use_colors: bool = False,
+    access_log: bool = False,
 ) -> logging.Formatter:
     """Build a formatter from a predefined name or a custom format string."""
     if formatter_str:
         return logging.Formatter(formatter_str)
     if log_format == "plain":
-        return PlainFormatter(DEFAULT_LOG_FORMAT, use_colors=use_colors)
+        format_log = DEFAULT_ACCESS_LOG_FORMAT if access_log else DEFAULT_LOG_FORMAT
+        return PlainFormatter(format_log, use_colors=use_colors, include_source=not access_log)
     if log_format == "json":
-        return JsonFormatter()
+        return JsonFormatter(include_source=not access_log)
     raise ValueError(f"Unsupported log format: {log_format!r}. Choose 'plain' or 'json'.")
 
 
@@ -106,6 +140,8 @@ def setup_logger(
     module: str | None = None,
     formatter_str: str | None = None,
     log_format: str = "plain",
+    stream: TextIO | None = None,
+    access_log: bool = False,
 ):
     """
     Set up a logger with file and stream handlers.
@@ -121,9 +157,11 @@ def setup_logger(
     :param module: Module name for log file naming (optional)
     :param formatter_str: Custom log format string (optional)
     :param log_format: Predefined format name, either ``plain`` or ``json``
+    :param stream: Console output stream (defaults to stderr)
+    :param access_log: Use the access-log format and omit the source location
     """
     if not logger.handlers:
-        formatter = get_formatter(log_format=log_format, formatter_str=formatter_str)
+        formatter = get_formatter(log_format=log_format, formatter_str=formatter_str, access_log=access_log)
 
         folder = os.environ.get("DIR_LOG", "logs")
         os.makedirs(folder, exist_ok=True)
@@ -145,11 +183,12 @@ def setup_logger(
         file_handler.addFilter(StackInfoFilter())
         logger.addHandler(file_handler)
 
-        stream_handler = logging.StreamHandler()
+        stream_handler = logging.StreamHandler(stream)
         stream_formatter = get_formatter(
             log_format=log_format,
             formatter_str=formatter_str,
             use_colors=stream_handler.stream.isatty(),
+            access_log=access_log,
         )
         stream_handler.setFormatter(stream_formatter)
         stream_handler.addFilter(StackInfoFilter())

@@ -4,20 +4,41 @@ import json
 import logging
 import os
 import re
+import sys
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
-from ..logger import LOG
-from ..logger.logger import setup_logger
+from ..logger import LOG, get_logger
 from ..settings import SETTINGS
 
-setup_logger(
-    logging.getLogger("uvicorn.access"),
-    formatter_str="A> %(asctime)s> %(message)s",
-    module=f"access_{SETTINGS.config.get('APP_MODULE') or os.environ.get('APP_MODULE', 'default')}",
+cfg_deploy = SETTINGS.config.get("deploy", {})
+level_log = cfg_deploy.get("log_level", logging.DEBUG)
+format_log = cfg_deploy.get("log_format", "plain")
+module_log = SETTINGS.config.get("APP_MODULE") or os.environ.get("APP_MODULE", "default")
+
+logger_uvicorn = get_logger(
+    "uvicorn",
+    level=level_log,
+    module=module_log,
+    log_format=format_log,
 )
+logger_uvicorn.propagate = False
+
+logger_uvicorn_error = logging.getLogger("uvicorn.error")
+logger_uvicorn_error.setLevel(logger_uvicorn.level)
+logger_uvicorn_error.propagate = True
+
+logger_uvicorn_access = get_logger(
+    "uvicorn.access",
+    level=level_log,
+    module=f"access_{module_log}",
+    log_format=format_log,
+    stream=sys.stdout,
+    access_log=True,
+)
+logger_uvicorn_access.propagate = False
 
 
 def _load_routes(name: str) -> list[tuple[str, Any]]:
@@ -80,7 +101,7 @@ class FastAPIApplication:
                 self._register_handler(url, handler_class)
                 s_log_msg = f"Loaded API module {url:<50}"
                 if LOG.level < logging.INFO:
-                    s_log_msg += f"\t from class {handler_class!s}"
+                    s_log_msg += f" from class {handler_class!s}"
                 LOG.info(s_log_msg)
 
     def _register_handler(self, url: str, handler_class):

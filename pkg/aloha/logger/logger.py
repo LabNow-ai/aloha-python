@@ -21,6 +21,7 @@ LEVEL_COLORS = {
     logging.ERROR: "31",
     logging.CRITICAL: "91",
 }
+STATUS_COLORS = {1: "97", 2: "32", 3: "33", 4: "31", 5: "91"}
 LOG_RECORD_FIELDS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
     "message",
     "asctime",
@@ -35,6 +36,39 @@ def _format_timestamp(timestamp: float) -> str:
 
 def _get_extra_fields(record: logging.LogRecord) -> dict:
     return {key: value for key, value in record.__dict__.items() if key not in LOG_RECORD_FIELDS}
+
+
+def _get_runtime_fields() -> dict:
+    return {"pid": os.getpid(), "hostname": socket.gethostname()}
+
+
+def _format_access_message(args: tuple, use_colors: bool) -> str:
+    client_addr, method, full_path, http_version, status_code = args
+    try:
+        status_phrase = http.HTTPStatus(int(status_code)).phrase
+    except ValueError:
+        status_phrase = ""
+
+    status = f"{status_code} {status_phrase}".rstrip()
+    request_line = f"{method} {full_path} HTTP/{http_version}"
+    if use_colors:
+        request_line = f"\x1b[1m{request_line}\x1b[0m"
+        color_status = STATUS_COLORS.get(int(status_code) // 100)
+        if color_status:
+            status = f"\x1b[{color_status}m{status}\x1b[0m"
+    return f'{client_addr} - "{request_line}" {status}'
+
+
+def _get_access_fields(record: logging.LogRecord) -> dict:
+    fields_access = _get_runtime_fields()
+    fields_access.update(
+        {
+            key: value
+            for key, value in _get_extra_fields(record).items()
+            if key != "logger" and key not in fields_access
+        }
+    )
+    return fields_access
 
 
 class PlainFormatter(logging.Formatter):
@@ -55,35 +89,10 @@ class PlainFormatter(logging.Formatter):
             record_copy.__dict__["source"] = f"{record_copy.filename}:{record_copy.lineno}"
         else:
             if isinstance(record_copy.args, tuple) and len(record_copy.args) == 5:
-                client_addr, method, full_path, http_version, status_code = record_copy.args
-                try:
-                    status_phrase = http.HTTPStatus(int(status_code)).phrase
-                except ValueError:
-                    status_phrase = ""
-                status = f"{status_code} {status_phrase}".rstrip()
-                request_line = f"{method} {full_path} HTTP/{http_version}"
-                if self.use_colors:
-                    request_line = f"\x1b[1m{request_line}\x1b[0m"
-                    color_status = {
-                        1: "97",
-                        2: "32",
-                        3: "33",
-                        4: "31",
-                        5: "91",
-                    }.get(int(status_code) // 100)
-                    if color_status:
-                        status = f"\x1b[{color_status}m{status}\x1b[0m"
-                record_copy.msg = f'{client_addr} - "{request_line}" {status}'
+                record_copy.msg = _format_access_message(record_copy.args, self.use_colors)
                 record_copy.args = ()
-                record_copy.message = record_copy.msg
-            fields_extra = _get_extra_fields(record_copy)
-            fields_extra.pop("logger", None)
-            fields_extra.pop("pid", None)
-            fields_extra.pop("hostname", None)
-            fields_extra = {"pid": os.getpid(), "hostname": socket.gethostname(), **fields_extra}
-            msg_access = record_copy.getMessage()
-            fields_access = json.dumps(fields_extra, ensure_ascii=False, default=str)
-            record_copy.msg = f"{msg_access} {fields_access}"
+            fields_access = json.dumps(_get_access_fields(record_copy), ensure_ascii=False, default=str)
+            record_copy.msg = f"{record_copy.getMessage()} {fields_access}"
             record_copy.args = ()
             record_copy.message = record_copy.msg
         return super().formatMessage(record_copy)
@@ -105,8 +114,7 @@ class JsonFormatter(logging.Formatter):
         payload = {
             "timestamp": _format_timestamp(record.created),
             "level": record.levelname,
-            "pid": os.getpid(),
-            "hostname": socket.gethostname(),
+            **_get_runtime_fields(),
         }
         if self.include_logger:
             payload["logger"] = record.name
@@ -115,8 +123,9 @@ class JsonFormatter(logging.Formatter):
             payload["source"] = f"{record.filename}:{record.lineno}"
         if self.include_extra:
             for key, value in _get_extra_fields(record).items():
-                if key not in payload and (self.include_logger or key != "logger"):
-                    payload[key] = value
+                if key == "logger" and not self.include_logger:
+                    continue
+                payload.setdefault(key, value)
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
         if record.stack_info and record.levelno > logging.INFO:
@@ -239,11 +248,11 @@ def get_logger(logger_name: str | None = None, level=logging.DEBUG, **kwargs) ->
     Get a configured logger instance.
 
     Creates or retrieves a logger by name and sets it up with file and stream handlers.
-    Accepts both string and integer log levels.
+    Accepts string and integer logging levels. If ``logger_name`` is ``None``,
+    configures the root logger.
 
     :param level: Logging level (int or str, default: DEBUG)
-    :param logger_name: Name of the logger (default: 'default')
-    :param args: Additional arguments passed to setup_logger
+    :param logger_name: Logger name (default: the root logger)
     :param kwargs: Additional keyword arguments passed to setup_logger
     :return: Configured logger instance
     """

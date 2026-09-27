@@ -4,7 +4,23 @@ The `aloha.logger` subpackage provides a pre-configured, multi-process safe logg
 
 ## 1. Global Logger (`LOG`)
 
-The module exports a global pre-configured logger named `LOG`. It reads log levels from settings under `deploy.log_level` (falling back to `logging.DEBUG` if unset). File and console formats are configured independently with `deploy.log_format_file` and `deploy.log_format_stream`; these default to `json` and `plain`, respectively.
+The module exports a global pre-configured logger named `LOG`. When `aloha.logger` is imported, it reads these settings from the `deploy` HOCON object:
+
+- `deploy.log_level` sets the minimum severity level; it accepts a Python logging level name such as `"INFO"` or a numeric level, and defaults to `DEBUG` when unset. This controls which records are emitted; it does **not** select the log format.
+- `deploy.log_format_file` selects the file format and defaults to `"json"`.
+- `deploy.log_format_stream` selects the console format and defaults to `"plain"`.
+
+For example, this configuration logs INFO and higher records, writes JSON lines to the log file, and uses plain text on the console:
+
+```hocon
+deploy = {
+    log_level = "INFO"
+    log_format_file = "json"
+    log_format_stream = "plain"
+}
+```
+
+The available formats and their output fields are described in [Predefined formats](#predefined-formats). The global `LOG` is configured at import time; set these values in the loaded HOCON configuration before importing `aloha.logger`.
 
 ### Usage Example
 
@@ -46,17 +62,7 @@ logger_custom.info("Custom sync logger initialized.")
 
 ### Predefined formats
 
-Configure the format in HOCON:
-
-```hocon
-deploy = {
-    log_level = "INFO"
-    log_format_file = "json"
-    log_format_stream = "plain"
-}
-```
-
-Supported values are:
+The global logger's HOCON format settings are shown above. `deploy.log_format_file` and `deploy.log_format_stream` each accept `"plain"` or `"json"`:
 
 - `plain`: the default format, with an aligned level prefix, ISO 8601 timestamp with millisecond precision and the host's configured local UTC offset (the same representation as the JSON `timestamp` field), `filename:lineno` source location, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
 - `json`: one JSON object per line with `timestamp`, `level`, `logger`, `pid`, `hostname`, `source` (`filename:lineno`), and `message` fields. `pid` and `hostname` identify the current Python process and runtime host. Exception information is included when available. WARNING and higher records also include a captured calling stack in `stack_info`.

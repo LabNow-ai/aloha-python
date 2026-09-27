@@ -1,10 +1,12 @@
-site_name: Aloha - a versatile Python library to build microservice.
+site_name: Aloha Python Microservice Library
+site_description: Open-source Python utilities and microservice boilerplate for HOCON configuration, structured logging, database integrations, encryption, FastAPI, and Docker-based development.
 repo_url: https://github.com/LabNow-ai/aloha-python
 edit_uri: blob/main/doc/en/
 site_url: !ENV READTHEDOCS_CANONICAL_URL
 docs_dir: ./en
 theme:
   name: material
+  language: en
   highlightjs: true
   features:
     - navigation.tabs

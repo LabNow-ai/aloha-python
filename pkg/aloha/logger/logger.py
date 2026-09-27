@@ -19,6 +19,14 @@ LEVEL_COLORS = {
 }
 
 
+def _format_timestamp(timestamp: float) -> str:
+    return (
+        datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        .isoformat(timespec="milliseconds")
+        .replace("+00:00", "Z")
+    )
+
+
 class PlainFormatter(logging.Formatter):
     """Format plain logs with an optional Uvicorn-style colored level prefix."""
 
@@ -34,15 +42,16 @@ class PlainFormatter(logging.Formatter):
         record_copy.__dict__["levelprefix"] = f"{level_name}:{' ' * (8 - len(record_copy.levelname))}"
         return super().formatMessage(record_copy)
 
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
+        return _format_timestamp(record.created)
+
 
 class JsonFormatter(logging.Formatter):
     """Format log records as JSON objects."""
 
     def format(self, record: logging.LogRecord) -> str:
         payload = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc)
-            .isoformat(timespec="milliseconds")
-            .replace("+00:00", "Z"),
+            "timestamp": _format_timestamp(record.created),
             "level": record.levelname,
             "logger": record.name,
             "module": record.module,

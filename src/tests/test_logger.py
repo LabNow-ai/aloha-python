@@ -2,7 +2,6 @@ import json
 import logging
 
 import pytest
-
 from aloha.logger.logger import JsonFormatter, get_formatter
 
 

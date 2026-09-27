@@ -2,13 +2,14 @@ import json
 import logging
 import os
 import socket
+import traceback
 from copy import copy
 from datetime import datetime, timezone
 from os.path import join as pjoin
 
 from .handler import MultiProcessSafeDailyRotatingFileHandler
 
-DEFAULT_LOG_FORMAT = "%(levelprefix)s %(asctime)s %(module)s %(lineno)s %(message)s"
+DEFAULT_LOG_FORMAT = "%(levelprefix)s %(asctime)s %(source)s %(message)s"
 LEVEL_COLORS = {
     5: "34",
     logging.DEBUG: "36",
@@ -20,11 +21,7 @@ LEVEL_COLORS = {
 
 
 def _format_timestamp(timestamp: float) -> str:
-    return (
-        datetime.fromtimestamp(timestamp, tz=timezone.utc)
-        .isoformat(timespec="milliseconds")
-        .replace("+00:00", "Z")
-    )
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 class PlainFormatter(logging.Formatter):
@@ -40,6 +37,7 @@ class PlainFormatter(logging.Formatter):
         if self.use_colors and record_copy.levelno in LEVEL_COLORS:
             level_name = f"\x1b[{LEVEL_COLORS[record_copy.levelno]}m{level_name}\x1b[0m"
         record_copy.__dict__["levelprefix"] = f"{level_name}:{' ' * (8 - len(record_copy.levelname))}"
+        record_copy.__dict__["source"] = f"{record_copy.filename}:{record_copy.lineno}"
         return super().formatMessage(record_copy)
 
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
@@ -54,15 +52,36 @@ class JsonFormatter(logging.Formatter):
             "timestamp": _format_timestamp(record.created),
             "level": record.levelname,
             "logger": record.name,
-            "module": record.module,
-            "line": record.lineno,
+            "source": f"{record.filename}:{record.lineno}",
             "message": record.getMessage(),
         }
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
-        if record.stack_info:
-            payload["stack"] = self.formatStack(record.stack_info)
+        if record.stack_info and record.levelno > logging.INFO:
+            payload["stack_info"] = self.formatStack(record.stack_info)
         return json.dumps(payload, ensure_ascii=False)
+
+
+class StackInfoFilter(logging.Filter):
+    """Capture the calling stack for records above INFO when it was not supplied."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.levelno > logging.INFO and not record.stack_info:
+            frames = traceback.extract_stack()
+            callsite = next(
+                (
+                    index
+                    for index in range(len(frames) - 1, -1, -1)
+                    if frames[index].filename == record.pathname and frames[index].lineno == record.lineno
+                ),
+                None,
+            )
+            if callsite is not None:
+                frames = frames[: callsite + 1]
+            else:
+                frames = frames[:-1]
+            record.stack_info = "Stack (most recent call last):\n" + "".join(traceback.format_list(frames))
+        return True
 
 
 def get_formatter(
@@ -123,6 +142,7 @@ def setup_logger(
 
         file_handler = MultiProcessSafeDailyRotatingFileHandler(path_file)
         file_handler.setFormatter(formatter)
+        file_handler.addFilter(StackInfoFilter())
         logger.addHandler(file_handler)
 
         stream_handler = logging.StreamHandler()
@@ -132,6 +152,7 @@ def setup_logger(
             use_colors=stream_handler.stream.isatty(),
         )
         stream_handler.setFormatter(stream_formatter)
+        stream_handler.addFilter(StackInfoFilter())
         logger.addHandler(stream_handler)
 
         logger.setLevel(level)

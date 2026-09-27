@@ -1,9 +1,10 @@
+import io
 import json
 import logging
 from datetime import datetime, timezone
 
 import pytest
-from aloha.logger.logger import JsonFormatter, get_formatter
+from aloha.logger.logger import JsonFormatter, StackInfoFilter, get_formatter
 
 
 def test_plain_formatter_matches_uvicorn_default_format():
@@ -13,7 +14,7 @@ def test_plain_formatter_matches_uvicorn_default_format():
     output = get_formatter().format(record)
 
     assert output.startswith("INFO:     2026-09-27T13:25:45.547Z ")
-    assert output.endswith("worker 7 hello")
+    assert output.endswith("worker.py:7 hello")
     assert "\x1b[" not in output
 
 
@@ -23,7 +24,7 @@ def test_plain_formatter_colors_level_prefix_when_enabled():
     output = get_formatter(use_colors=True).format(record)
 
     assert output.startswith("\x1b[32mINFO\x1b[0m:     ")
-    assert output.endswith("worker 7 hello")
+    assert output.endswith("worker.py:7 hello")
 
 
 def test_json_formatter_outputs_structured_record():
@@ -35,10 +36,39 @@ def test_json_formatter_outputs_structured_record():
     assert payload["timestamp"] == "2026-09-27T13:25:45.547Z"
     assert payload["level"] == "INFO"
     assert payload["logger"] == "worker"
-    assert payload["module"] == "worker"
-    assert payload["line"] == 7
+    assert payload["source"] == "worker.py:7"
+    assert "module" not in payload
+    assert "line" not in payload
     assert payload["message"] == "hello world"
-    assert payload["timestamp"].endswith("Z")
+
+
+def test_warning_logs_include_stack_info():
+    logger = logging.getLogger("warning_stack_test")
+    logger.handlers.clear()
+    logger.filters.clear()
+    logger.setLevel(logging.WARNING)
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(get_formatter())
+    handler.addFilter(StackInfoFilter())
+    logger.addHandler(handler)
+
+    logger.warning("warning")
+
+    output = stream.getvalue()
+    assert "Stack (most recent call last):" in output
+    assert "test_warning_logs_include_stack_info" in output
+
+    logger.removeHandler(handler)
+
+
+def test_json_warning_records_include_stack_info():
+    record = logging.LogRecord("worker", logging.WARNING, "worker.py", 7, "warning", (), None)
+
+    StackInfoFilter().filter(record)
+    payload = json.loads(JsonFormatter().format(record))
+
+    assert "Stack (most recent call last):" in payload["stack_info"]
 
 
 def test_custom_formatter_takes_precedence():

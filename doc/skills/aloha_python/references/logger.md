@@ -57,8 +57,8 @@ deploy = {
 
 Supported values are:
 
-- `plain`: the default format, with an aligned level prefix, UTC ISO 8601 timestamp with millisecond precision (the same representation as the JSON `timestamp` field), module, line, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
-- `json`: one JSON object per line with `timestamp`, `level`, `logger`, `module`, `line`, and `message` fields. Exception and stack information are included when available.
+- `plain`: the default format, with an aligned level prefix, UTC ISO 8601 timestamp with millisecond precision (the same representation as the JSON `timestamp` field), `filename:lineno` source location, and message. The console handler colors the level prefix by severity when its stream is a terminal; log files remain uncolored.
+- `json`: one JSON object per line with `timestamp`, `level`, `logger`, `source` (`filename:lineno`), and `message` fields. Exception information is included when available. WARNING and higher records also include a captured calling stack in `stack_info`.
 
 The `formatter_str` argument remains available for loggers that need a custom format. It takes precedence over `log_format`.
 

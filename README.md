@@ -4,7 +4,7 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/LabNow-ai/aloha-python/build.yml?branch=main)](https://github.com/LabNow-ai/aloha-python/actions)
 [![PyPI version](https://img.shields.io/pypi/v/aloha)](https://pypi.org/project/aloha/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/aloha)](https://pypi.org/project/aloha/)
-[![GitHub stars](https://img.shields.io/github/stars/LabNow-ai/aloha-python?style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/LabNow-ai/aloha-python.svg?label=Stars&style=social)](https://github.com/LabNow-ai/aloha-python/stargazers)
 
 **Aloha is an open-source Python utility library and microservice project template.** It helps Python teams build containerized services with HOCON configuration, structured and multi-process-safe logging, database integrations, encryption utilities, and pytest testing helpers.
 
@@ -61,15 +61,15 @@ The global logger reads `deploy.log_level`, `deploy.log_format_file`, and `deplo
 
 ## What Is Included?
 
-| Module | What it helps with |
-| --- | --- |
-| `aloha.config` | Load HOCON settings, profiles, and environment-based configuration. |
-| `aloha.logger` | Configure global and named loggers, JSON/plain output, and daily rotating logs. |
-| `aloha.db` | Connect to supported SQL and service databases with reusable operators and password-vault integration. |
-| `aloha.encrypt` | Use AES, RSA, JWT, hashing, and password-vault helpers. |
-| `aloha.service` | Build FastAPI/Uvicorn services and reusable HTTP API handlers. |
-| `aloha.testing` | Test utilities for unit tests and service API tests. |
-| `aloha compile` | Build selected Python modules as native extensions using Cython. |
+| Module          | What it helps with                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| `aloha.config`  | Load HOCON settings, profiles, and environment-based configuration.                                    |
+| `aloha.logger`  | Configure global and named loggers, JSON/plain output, and daily rotating logs.                        |
+| `aloha.db`      | Connect to supported SQL and service databases with reusable operators and password-vault integration. |
+| `aloha.encrypt` | Use AES, RSA, JWT, hashing, and password-vault helpers.                                                |
+| `aloha.service` | Build FastAPI/Uvicorn services and reusable HTTP API handlers.                                         |
+| `aloha.testing` | Test utilities for unit tests and service API tests.                                                   |
+| `aloha compile` | Build selected Python modules as native extensions using Cython.                                       |
 
 Explore the [API documentation](https://aloha-python.readthedocs.io/en/latest/api/) or the detailed [Aloha Python Skill guide](doc/skills/aloha_python/SKILL.md).
 

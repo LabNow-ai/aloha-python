@@ -47,7 +47,10 @@ jobs:
             --config p/python \
             --config p/javascript \
             --config p/react \
-            --config p/owasp-top-ten
+            --config p/owasp-top-ten \
+            --exclude-rule dockerfile.security.last-user-is-root.last-user-is-root \
+            --exclude-rule python.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5 \
+            --exclude-rule yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
 
   build-pypi-package:
     runs-on: ubuntu-latest

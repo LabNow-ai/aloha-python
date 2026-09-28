@@ -28,7 +28,7 @@ services:
       - "$HOME/.ssh:/home/${CONTAINER_UID:-0}/.ssh:rw"
       # AI4Coding tools:
       - "$HOME/.claude:/home/${CONTAINER_UID:-0}/.claude:rw"
-      - "$HOME/.codex:/home/${CONTAINER_UID:-0}/.codex:rw"
-      - "$HOME/.copilot:/home/${CONTAINER_UID:-0}/.copilot:rw"
-      - "$HOME/.gemini:/home/${CONTAINER_UID:-0}/.gemini:rw"
+      # - "$HOME/.codex:/home/${CONTAINER_UID:-0}/.codex:rw"
+      # - "$HOME/.copilot:/home/${CONTAINER_UID:-0}/.copilot:rw"
+      # - "$HOME/.gemini:/home/${CONTAINER_UID:-0}/.gemini:rw"
     command: "tail -f /dev/null"

@@ -29,7 +29,6 @@ mkdir -pv .github/workflows doc/skills src/tests tool/cicd
 # Create agent config directories and symlink the centralized rules and skills
 mkdir -pv doc/skills .agents .claude \
   && touch AGENTS.md \
-  && ln -sf AGENTS.md CLAUDE.md \
   && ln -sf ../AGENTS.md .github/copilot-instructions.md \
   && ln -sf ../doc/skills .agents/ \
   && ln -sf ../doc/skills .claude/ \
